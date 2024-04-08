@@ -84,13 +84,11 @@ func saveCsvResp(ctx context.Context, colName string, chunk, offsetInd int, mb *
 		log.Warn().Msg("saveCsvResp nil m")
 		return nil
 	}
-
 	if len(v.QueryParams) > 0 {
 		m["entity"] = strings.Join(v.QueryParams, ",")
 	} else {
 		m["entity"] = v.Source
 	}
-
 	b, err := json.Marshal(m)
 	if err != nil {
 		log.Err(err).Msg("ZeusAiPlatformActivities: saveCsvResp RecordCompletionResponse: failed")

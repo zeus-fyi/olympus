@@ -48,4 +48,16 @@ func (t *ZeusWorkerTestSuite) TestCsvIteratorReports() {
 	t.Require().Nil(err)
 }
 
+func (t *ZeusWorkerTestSuite) TestC() {
+	plms := []map[string]interface{}{
+		{"entity": "https://www.homeenvironmentsolutions.com", "prompt1": "home insulation"},
+		{"entity": "https://www.homeenvironmentsolutions.com", "prompt2": "Noticed on your website you provide energy-saving and air quality services to keep homes comfortable and healthy."},
+		{"entity": "https://www.aol.com", "prompt1": "try me"},
+		{"entity": "https://www.aol.com", "prompt2": "Noticed test."},
+	}
+	res := convEntityToCsvCol("Website", plms)
+	fmt.Println(res)
+
+}
+
 // GenerateCycleReports

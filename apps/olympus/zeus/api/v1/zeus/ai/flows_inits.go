@@ -2,7 +2,6 @@ package zeus_v1_ai
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -222,18 +221,37 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
 	}
-	prompts := w.getPrompts()
+	prompts := w.getPromptsMap()
 	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
 		if len(prompts) <= 0 {
-			prompts = []string{v}
+			//prompts = []string{v}
 		} else {
 			w.TaskOverrides[wbsTaskName] = artemis_orchestrations.TaskOverride{
 				SystemPromptExt: v,
 			}
 		}
 	}
-	w.createWfSchemaFieldOverride(webFetchWf, wbsTaskName, "summary", prompts)
+	w.createWfTaskPromptOverrides(webFetchWf, wbsTaskName, prompts)
+	//w.createWfSchemaFieldOverride(webFetchWf, wbsTaskName, "summary", prompts)
 	return nil
+}
+
+func (w *ExecFlowsActionsRequest) createWfTaskPromptOverrides(wfn, tn string, overrides map[string]string) {
+	if _, exists := w.WfTaskOverrides[wfn]; !exists {
+		w.WfTaskOverrides[wfn] = make(map[string]artemis_orchestrations.TaskOverride)
+	}
+	if _, exists := w.WfTaskOverrides[wfn][tn]; exists {
+		rps := w.WfTaskOverrides[wfn][tn]
+		for k, v := range overrides {
+			rps.ReplacePrompts[k] = v
+		}
+		w.WfTaskOverrides[wfn][tn] = rps
+	} else {
+		w.WfTaskOverrides[wfn][tn] = artemis_orchestrations.TaskOverride{
+			ReplacePrompts:  overrides,
+			SystemPromptExt: "",
+		}
+	}
 }
 
 // Can you tell me what this person does in their current role; and the company they work at now?
@@ -316,15 +334,15 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 	if v, ok := w.Stages[googleSearch]; !ok || !v {
 		return nil
 	}
-	b, err := json.Marshal(w.ContactsCsv)
-	if err != nil {
-		log.Err(err).Msg("failed to marshal gs")
-		return err
-	}
+	//b, err := json.Marshal(w.ContactsCsv)
+	//if err != nil {
+	//	log.Err(err).Msg("failed to marshal gs")
+	//	return err
+	//}
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
-	w.TaskOverrides["zeusfyi-verbatim"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
+	//w.TaskOverrides["zeusfyi-verbatim"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
 	if v, ok := w.CommandPrompts[googleSearch]; ok && v != "" {
 		//if w.SchemaFieldOverrides == nil {
 		//	w.SchemaFieldOverrides = make(map[string]map[string]artemis_orchestrations.)

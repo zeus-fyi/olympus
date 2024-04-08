@@ -144,6 +144,24 @@ func getJsonSgChunkToProcess(mb *MbChildSubProcessParams, in *WorkflowStageIO) *
 	return sg
 }
 
+func getJsonSgChunkToProcess2(chunk int, mb *MbChildSubProcessParams, in *WorkflowStageIO) *hera_search.SearchResultGroup {
+	pr := in.WorkflowStageInfo.PromptReduction
+	var sg *hera_search.SearchResultGroup
+	if in.WorkflowStageInfo.PromptTextFromTextStage != "" {
+		sg = &hera_search.SearchResultGroup{
+			BodyPrompt: in.WorkflowStageInfo.PromptTextFromTextStage,
+		}
+	} else if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && mb.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+		sg = pr.PromptReductionSearchResults.OutSearchGroups[chunk]
+	} else {
+		sg = &hera_search.SearchResultGroup{
+			BodyPrompt:    pr.PromptReductionText.OutPromptChunks[chunk],
+			SearchResults: []hera_search.SearchResult{},
+		}
+	}
+	return sg
+}
+
 func unmarshallJsonOpenAI(cr *ChatCompletionQueryResponse, jsd []*artemis_orchestrations.JsonSchemaDefinition, sg *hera_search.SearchResultGroup) ([]artemis_orchestrations.JsonSchemaDefinition, error) {
 	var m any
 	var anyErr error

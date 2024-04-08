@@ -37,8 +37,8 @@ type RetrievalOverride struct {
 
 type TaskOverrides map[string]TaskOverride
 type TaskOverride struct {
-	ReplacePrompt   string `json:"replacePrompt,omitempty"`
-	SystemPromptExt string `json:"systemPromptExt,omitempty"`
+	ReplacePrompts  map[string]string `json:"replacePrompts,omitempty"`
+	SystemPromptExt string            `json:"systemPromptExt,omitempty"`
 }
 
 type Task struct {

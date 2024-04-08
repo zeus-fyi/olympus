@@ -78,6 +78,9 @@ func (w *ExecFlowsActionsRequest) InitMaps() {
 	if w.TaskOverrides == nil {
 		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
 	}
+	if w.WfTaskOverrides == nil {
+		w.WfTaskOverrides = make(map[string]artemis_orchestrations.TaskOverrides)
+	}
 	if w.SchemaFieldOverrides == nil {
 		w.SchemaFieldOverrides = make(map[string]map[string][]string)
 	}
@@ -89,6 +92,16 @@ func (w *ExecFlowsActionsRequest) InitMaps() {
 	if w.WfSchemaFieldOverrides == nil {
 		w.WfSchemaFieldOverrides = make(map[string]artemis_orchestrations.SchemaOverrides)
 	}
+}
+
+func (w *ExecFlowsActionsRequest) getPromptsMap() map[string]string {
+	prompts := make(map[string]string)
+	for _, cvs := range w.PromptsCsv {
+		for cn, colValue := range cvs {
+			prompts[cn] = colValue
+		}
+	}
+	return prompts
 }
 
 func (w *ExecFlowsActionsRequest) getPrompts() []string {

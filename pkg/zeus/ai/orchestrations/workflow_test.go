@@ -8,6 +8,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	artemis_hydra_orchestrations_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/validator_signature_requests/aws_auth"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	hermes_email_notifications "github.com/zeus-fyi/olympus/pkg/hermes/email"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/zeus/topologies/orchestrations/orchestration_auth"
@@ -30,6 +31,10 @@ func (t *ZeusWorkerTestSuite) SetupTest() {
 		SecretKey: t.Tc.AwsSecretKeySecretManager,
 	}
 	artemis_hydra_orchestrations_auth.InitHydraSecretManagerAuthAWS(ctx, auth)
+	ps, err := GetMockingBirdSecrets(ctx, t.Ou)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(ps.ApiKey)
+	hera_openai.InitHeraOpenAI(ps.ApiKey)
 	//t.SetupLocalOvhS3()
 }
 

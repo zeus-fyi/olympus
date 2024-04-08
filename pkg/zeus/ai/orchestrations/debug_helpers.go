@@ -11,6 +11,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"github.com/zeus-fyi/olympus/pkg/utils/chronos"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -22,6 +23,54 @@ func ChangeToAiDir() string {
 		panic(err.Error())
 	}
 	return dir
+}
+
+type CsvIteratorDebug struct {
+	Cp *MbChildSubProcessParams
+}
+
+func (f *CsvIteratorDebug) Save() {
+	dirMain := ChangeToAiDir()
+	b, err := json.MarshalIndent(f, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	ch := chronos.Chronos{}
+	rn = "CsvIteratorDebug"
+	fp := filepaths.Path{
+		DirIn:  dirMain,
+		DirOut: path.Join(dirMain, "tmp"),
+		FnOut:  fmt.Sprintf("%s-cycle-%d-chunk-%d-%d.json", rn, f.Cp.Wsr.RunCycle, f.Cp.Wsr.ChunkOffset, ch.UnixTimeStampNow()),
+	}
+	err = fp.WriteToFileOutPath(b)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func OpenCsvIteratorDebug(fn string) CsvIteratorDebug {
+	dirMain := ChangeToAiDir()
+	f := CsvIteratorDebug{}
+	if f.Cp == nil {
+		f.Cp = &MbChildSubProcessParams{
+			Wsr: artemis_orchestrations.WorkflowStageReference{
+				RunCycle:    1,
+				ChunkOffset: 0,
+			},
+		}
+	}
+	fp := filepaths.Path{
+		DirIn:  path.Join(dirMain, "tmp"),
+		DirOut: path.Join(dirMain, "tmp"),
+		FnIn:   fn,
+		FnOut:  fn,
+	}
+	b := fp.ReadFileInPath()
+	err := json.Unmarshal(b, &f)
+	if err != nil {
+		panic(err)
+	}
+	return f
 }
 
 type AiAggregateAnalysisRetrievalTaskInputDebug struct {

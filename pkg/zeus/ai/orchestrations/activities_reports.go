@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
@@ -67,10 +66,13 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 		}
 		resp = append(resp, tmp)
 	}
+	var payloadMaps []map[string]interface{}
 	m := make(map[string]bool)
 	var jsr []artemis_orchestrations.JsonSchemaDefinition
 	for _, v := range resp {
-		if v.ChatCompletionQueryResponse != nil {
+		if v.CsvResponse != nil {
+			payloadMaps = append(payloadMaps, v.CsvResponse)
+		} else if v.ChatCompletionQueryResponse != nil {
 			if v.ChatCompletionQueryResponse.JsonResponseResults != nil {
 				// create report
 				for _, vi := range v.ChatCompletionQueryResponse.JsonResponseResults {
@@ -96,7 +98,6 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 			}
 		}
 	}
-	var payloadMaps []map[string]interface{}
 	if len(jsr) > 0 {
 		payloadMaps = append(payloadMaps, artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsr)...)
 	}
@@ -164,19 +165,20 @@ func convEntityToCsvCol(cn string, plms []map[string]interface{}) []map[string]i
 			pl[cn] = v
 			plms[i] = pl
 		}
-		for k, v := range pl {
-			pf := "summary_"
-			if strings.HasPrefix(k, "summary_") {
-				tmp := strings.TrimPrefix(k, pf)
-				delete(pl, k)
-				pl[fmt.Sprintf("%s_%s%s", cn, "AI_Response_", tmp)] = v
-			}
-		}
-		if v, ok := pl["summary"]; ok {
-			delete(pl, "summary")
-			pl[fmt.Sprintf("%s_%s", cn, "AI_Response_0")] = v
-			plms[i] = pl
-		}
+
+		//for k, v := range pl {
+		//	pf := "summary_"
+		//	if strings.HasPrefix(k, "summary_") {
+		//		tmp := strings.TrimPrefix(k, pf)
+		//		delete(pl, k)
+		//		pl[fmt.Sprintf("%s_%s%s", cn, "AI_Response_", tmp)] = v
+		//	}
+		//}
+		//if v, ok := pl["summary"]; ok {
+		//	delete(pl, "summary")
+		//	pl[fmt.Sprintf("%s_%s", cn, "AI_Response_0")] = v
+		//	plms[i] = pl
+		//}
 	}
 	return plms
 }

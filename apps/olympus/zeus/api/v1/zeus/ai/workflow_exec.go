@@ -3,9 +3,7 @@ package zeus_v1_ai
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
@@ -28,6 +26,7 @@ type WorkflowsActionsRequest struct {
 
 	WfSchemaFieldOverrides artemis_orchestrations.WorkflowSchemaOverrides       `json:"wfSchemaFieldOverrides,omitempty"`
 	WfRetrievalOverrides   map[string]artemis_orchestrations.RetrievalOverrides `json:"wfRetrievalPayloadOverrides,omitempty"`
+	WfTaskOverrides        map[string]artemis_orchestrations.TaskOverrides      `json:"wfTaskOverrides,omitempty"`
 
 	TaskOverrides             artemis_orchestrations.TaskOverrides                 `json:"taskOverrides,omitempty"`
 	SchemaFieldOverrides      artemis_orchestrations.SchemaOverrides               `json:"schemaFieldOverrides,omitempty"`
@@ -85,18 +84,18 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
 			}
-			for ti, task := range resp[ri].WorkflowTasks {
-				tov, tok := w.TaskOverrides[task.AnalysisTaskName]
-				if tok {
-					resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
-				}
-				if task.AggTaskID != nil && *task.AggTaskID > 0 {
-					tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
-					if tok {
-						resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
-					}
-				}
-			}
+			//for ti, task := range resp[ri].WorkflowTasks {
+			//	tov, tok := w.TaskOverrides[task.AnalysisTaskName]
+			//	if tok {
+			//		resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
+			//	}
+			//	if task.AggTaskID != nil && *task.AggTaskID > 0 {
+			//		tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
+			//		if tok {
+			//			resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
+			//		}
+			//	}
+			//}
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}

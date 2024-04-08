@@ -53,7 +53,8 @@ func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou 
 	return tv, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, taskInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
+	ou := cp.Ou
 	var content string
 	if cp != nil && cp.Wsr.InputID > 0 {
 		in, werr := gs3wfs(ctx, cp)

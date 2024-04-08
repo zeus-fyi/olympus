@@ -86,22 +86,35 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if len(jsv) > 0 {
 		cr.JsonResponseResults = jsv
 	}
-
 	log.Info().Interface("len(cr.JsonResponseResults)", len(cr.JsonResponseResults)).Interface("len(sg.RegexSearchResults)", len(sg.RegexSearchResults)).Interface("len(sg.ApiResponseResults)", len(sg.ApiResponseResults)).Msg("CreateJsonOutputModelResponse }")
 
 	// temp
-	//var jsff []artemis_orchestrations.JsonSchemaDefinition
-	//for _, jt := range jsd {
-	//	if jt != nil {
-	//		jsff = append(jsff, *jt)
-	//	}
+	var jsff []artemis_orchestrations.JsonSchemaDefinition
+	for _, jt := range jsd {
+		if jt != nil {
+			jsff = append(jsff, *jt)
+		}
+	}
+	//m := make(map[string]bool)
+	//for _, v := range sg.ApiResponseResults {
+	//	m[v.Source] = true
 	//}
-	//payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
-	//for _, pv := range payloadMaps {
-	//	for k, v := range pv {
-	//		fmt.Println("CreateJsonOutputModelResponse ", "k: ", k, "v: ", v)
-	//	}
-	//}
+	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
+	for _, pl := range payloadMaps {
+		fmt.Println(pl)
+		//tv, ok := pl["entity"]
+		//if !ok {
+		//	return nil, fmt.Errorf("not ok")
+		//}
+		//sv, ok := tv.(string)
+		//if !ok {
+		//	return nil, fmt.Errorf("not ok")
+		//}
+		//mv, ok := m[sv]
+		//if !mv || !ok {
+		//	return nil, fmt.Errorf("not ok")
+		//}
+	}
 	//dj := DebugJsonOutputs{
 	//	Mb:            mb,
 	//	Params:        params,

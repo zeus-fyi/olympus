@@ -20,6 +20,7 @@ import (
 	artemis_orchestration_auth "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/orchestration_auth"
 	hera_reddit "github.com/zeus-fyi/olympus/pkg/hera/reddit"
 	iris_usage_meters "github.com/zeus-fyi/olympus/pkg/iris/proxy/usage_meters"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 type IrisApiRequestsActivities struct {
@@ -342,7 +343,10 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 					log.Err(herr).Msg("sendRequest: failed to parse response body")
 					return resp, herr
 				}
-				plMap := extractAndRespond(doc)
+				plMap, perr := extractAndRespond(doc)
+				if perr != nil {
+					return nil, perr
+				}
 				pr.Response = plMap
 			}
 			if pr.Response == nil && resp.Body() != nil {
@@ -352,6 +356,23 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 					err = nil
 				}
 			}
+		} else if method == "POST" && pr.RequestHeaders["X-Scrape-Html"] != nil {
+			tv := resp.String()
+			tv = strings.TrimPrefix(tv, "\"")
+			tv = strings.TrimSuffix(tv, "\"")
+			tv = unescapeUnicode(tv)
+			tv = html.UnescapeString(tv)
+			doc, herr := goquery.NewDocumentFromReader(strings.NewReader(tv))
+			if herr != nil {
+				log.Err(herr).Msg("sendRequest: failed to parse response body")
+				return resp, herr
+			}
+			plMap, rerr := extractAndRespond(doc)
+			if rerr != nil {
+				log.Err(rerr).Msg("sendRequest: extractAndRespond")
+				return resp, rerr
+			}
+			pr.Response = plMap
 		}
 		pr.PayloadSizeMeter.Add(resp.Size())
 		pr.StatusCode = resp.StatusCode()
@@ -380,7 +401,10 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 					log.Err(herr).Msg("sendRequest: failed to parse response body")
 					return resp, herr
 				}
-				pr.Response = extractAndRespond(doc)
+				pr.Response, err = extractAndRespond(doc)
+				if err != nil {
+					return nil, err
+				}
 				brs, berr := json.Marshal(pr.Response)
 				if berr != nil {
 					log.Err(err).Msg("sendRequest: failed to marshal response body")
@@ -451,7 +475,7 @@ func ExtractParams(regexStrs []string, strContent []byte) ([]string, error) {
 	return combinedParams, nil
 }
 
-func extractAndRespond(doc *goquery.Document) echo.Map {
+func extractAndRespond(doc *goquery.Document) (echo.Map, error) {
 	var elements []string
 
 	//// Extract meta tags
@@ -473,7 +497,7 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 	// Extract h1-h6 tags
 	for _, tag := range []string{"h1", "h2", "h3", "h4", "h5", "h6"} {
 		doc.Find(tag).Each(func(i int, s *goquery.Selection) {
-			tv := s.Text()
+			tv := cleanText(s.Text())
 			if len(tv) == 0 {
 				return
 			}
@@ -483,7 +507,7 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 
 	// Extract p tags
 	doc.Find("p").Each(func(i int, s *goquery.Selection) {
-		tv := s.Text()
+		tv := cleanText(s.Text())
 		if len(tv) == 0 {
 			return
 		}
@@ -492,9 +516,92 @@ func extractAndRespond(doc *goquery.Document) echo.Map {
 
 	if len(elements) == 0 {
 		log.Info().Interface("doc", doc.Text())
-		return nil
+		return nil, nil
+	}
+
+	el, err := LimitTokenResp(elements)
+	if err != nil {
+		log.Err(err).Interface("elements", elements).Msg("LimitTokenResp")
+		return nil, err
 	}
 	return echo.Map{
-		"msg_body": elements,
+		"msg_body": el,
+	}, nil
+}
+
+func LimitTokenResp(elements []string) ([]string, error) {
+	lv := 0
+
+	totalCnt := 0
+	for i, item := range elements {
+		tokenCount, err := GetTokenCountEstimate(context.Background(), "gpt-3.5", item)
+		if err != nil {
+			return nil, err
+		}
+		totalCnt += tokenCount
+		if totalCnt <= 9000 {
+			lv = i // Update last valid if within the token limit
+		} else {
+			log.Info().Interface("totalCnt", totalCnt).Msg("LimitTokenResp")
+			// Return the last valid range if current range exceeds 10000 tokens
+			return elements[:lv], nil
+		}
 	}
+	// If the whole array is under the limit, return it
+	return elements[:lv], nil
+}
+
+type TokenCountsEstimate struct {
+	Count int `json:"count"`
+}
+
+func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error) {
+	if len(model) == 0 {
+		model = "gpt-4"
+	}
+	if strings.HasPrefix(model, "gpt-4") {
+		model = "gpt-4"
+	}
+	if strings.HasPrefix(model, "gpt-3.5") {
+		model = "gpt-3.5-turbo"
+	}
+	apiReq := &ApiProxyRequest{
+		Url:             "https://pandora.zeus.fyi",
+		PayloadTypeREST: "POST",
+		Payload: echo.Map{
+			"model": model,
+			"text":  text,
+		},
+		IsInternal: true,
+	}
+	var tc TokenCountsEstimate
+	res := resty_base.GetBaseRestyClient(apiReq.Url, artemis_orchestration_auth.Bearer)
+	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&tc).Post("tokenize")
+	if err != nil {
+		// .Interface("&apiReq.Payload)", &apiReq.Payload)
+		log.Err(err).Msg("Zeus: GetTokenCountEstimate")
+		return -1, err
+	}
+	if resp != nil && resp.StatusCode() >= 400 {
+		if err != nil {
+			err = fmt.Errorf("GetTokenCountEstimate: failed to relay api request: status code %d", resp.StatusCode())
+		}
+		// .Interface("&apiReq.Payload)", &apiReq.Payload)
+		//log.Err(err).Msg("Zeus: GetTokenCountEstimate")
+		return -1, err
+	}
+	return tc.Count, nil
+}
+
+// cleanText trims spaces and removes escape characters from the text
+func cleanText(text string) string {
+	// Trim leading and trailing whitespace
+	text = strings.TrimSpace(text)
+	// Remove \r and \n escape sequences
+	text = strings.ReplaceAll(text, "\r", "")
+	text = strings.ReplaceAll(text, "\n", "")
+	text = strings.ReplaceAll(text, "\t", "")
+	// Remove additional internal spaces
+	text = strings.Join(strings.Fields(text), " ")
+	return text
 }

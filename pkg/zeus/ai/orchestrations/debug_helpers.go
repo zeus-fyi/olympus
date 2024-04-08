@@ -10,6 +10,7 @@ import (
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	iris_models "github.com/zeus-fyi/olympus/datastores/postgres/apps/iris"
+	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
@@ -26,6 +27,32 @@ func ChangeToAiDir() string {
 type AiAggregateAnalysisRetrievalTaskInputDebug struct {
 	SourceTaskIds []int
 	Cp            *MbChildSubProcessParams
+}
+
+type DebugJsonOutputs struct {
+	Mb            *MbChildSubProcessParams
+	Params        hera_openai.OpenAIParams
+	JsonResponses []map[string]interface{}
+}
+
+func (f *DebugJsonOutputs) Save() {
+	dirMain := ChangeToAiDir()
+	b, err := json.MarshalIndent(f, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	//ch := chronos.Chronos{}
+	//ch.UnixTimeStampNow(),
+	//rn := te
+	fp := filepaths.Path{
+		DirIn:  dirMain,
+		DirOut: path.Join(dirMain, "tmp"),
+		FnOut:  fmt.Sprintf("%s-cycle-%d-chunk-%d.json", rn, f.Mb.Wsr.RunCycle, f.Mb.Wsr.ChunkOffset),
+	}
+	err = fp.WriteToFileOutPath(b)
+	if err != nil {
+		panic(err)
+	}
 }
 
 var rn = "GenerateCycleReports"

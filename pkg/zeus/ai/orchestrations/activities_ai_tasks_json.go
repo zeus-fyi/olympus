@@ -90,18 +90,24 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	log.Info().Interface("len(cr.JsonResponseResults)", len(cr.JsonResponseResults)).Interface("len(sg.RegexSearchResults)", len(sg.RegexSearchResults)).Interface("len(sg.ApiResponseResults)", len(sg.ApiResponseResults)).Msg("CreateJsonOutputModelResponse }")
 
 	// temp
-	var jsff []artemis_orchestrations.JsonSchemaDefinition
-	for _, jt := range jsd {
-		if jt != nil {
-			jsff = append(jsff, *jt)
-		}
-	}
-	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
-	for _, pv := range payloadMaps {
-		for k, v := range pv {
-			fmt.Println("CreateJsonOutputModelResponse ", "k: ", k, "v: ", v)
-		}
-	}
+	//var jsff []artemis_orchestrations.JsonSchemaDefinition
+	//for _, jt := range jsd {
+	//	if jt != nil {
+	//		jsff = append(jsff, *jt)
+	//	}
+	//}
+	//payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
+	//for _, pv := range payloadMaps {
+	//	for k, v := range pv {
+	//		fmt.Println("CreateJsonOutputModelResponse ", "k: ", k, "v: ", v)
+	//	}
+	//}
+	//dj := DebugJsonOutputs{
+	//	Mb:            mb,
+	//	Params:        params,
+	//	JsonResponses: payloadMaps,
+	//}
+	//dj.Save()
 	// end temp
 	activity.RecordHeartbeat(ctx, cr.Response.ID)
 	return cr, nil

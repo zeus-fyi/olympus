@@ -3,6 +3,7 @@ package s3base
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -31,11 +32,12 @@ func (t *S3ClientTestSuite) TestConnection() {
 	t.Require().NotEmpty(o)
 	//
 	fmt.Println(len(o), "len")
-	//for _, v := range o {
-	//	err = s3client.DeleteObject(ctx, "flows", v)
-	//	t.Require().Nil(err)
-	//
-	//}
+	for _, v := range o {
+		if strings.Contains(v, "zenrows") {
+			err = s3client.DeleteObject(ctx, "flows", v)
+			t.Require().Nil(err)
+		}
+	}
 }
 
 func TestS3ClientTestSuite(t *testing.T) {

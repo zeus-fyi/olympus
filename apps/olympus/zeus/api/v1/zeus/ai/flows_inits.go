@@ -17,11 +17,16 @@ import (
 
 const (
 	// wfs
-	webFetchWf = "website-analysis-wf"
-	emailVdWf  = "validate-emails-wf"
-	googWf     = "google-query-regex-index-wf"
-	liWf       = "linkedin-rapid-api-profiles-wf"
-	liBizWf    = "linkedin-rapid-api-biz-profiles-wf"
+	// 	prev webFetchWf = "website-analysis-wf"
+	// new 	webFetchWf = "scraped-website-analysis-wf"
+	// 	webFetchWf = "scraped-website-analysis-wf"
+	zenrowsWebFetchWf = "zenrows-website-analysis-wf"
+	webFetchWf        = zenrowsWebFetchWf
+	//webFetchWf        = "scraped-website-analysis-wf"
+	emailVdWf = "validate-emails-wf"
+	googWf    = "google-query-regex-index-wf"
+	liWf      = "linkedin-rapid-api-profiles-wf"
+	liBizWf   = "linkedin-rapid-api-biz-profiles-wf"
 
 	// wf identifier stage
 	linkedIn       = "linkedIn"
@@ -34,6 +39,11 @@ const (
 	validemailRetQp  = "validemail-query-params"
 	linkedInRetQp    = "linkedin-profile"
 	linkedInBizRetQp = "linkedin-biz-profile"
+
+	zenrowsScrapedWbsRet = "zenrows-website-analysis"
+	//scrapedWbsRet        = "scraped-website-analysis"
+	scrapedWbsRet = zenrowsScrapedWbsRet
+
 	// task
 	wbsTaskName = "website-analysis"
 
@@ -156,6 +166,8 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 //	return nil
 //}
 
+/*
+ */
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[websiteScrape]; !ok || !v {
 		return nil
@@ -168,7 +180,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		for cname, colValue := range cvs {
 			if (strings.Contains(cname, "web") || strings.Contains(cname, "url") || strings.Contains(cname, "link") || strings.Contains(cname, "site")) && len(colValue) > 0 {
 				if len(colName) > 0 && colName != cname {
-					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
+					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("ScrapeRegularWebsiteSetup")
 					return fmt.Errorf("duplicate web column")
 				}
 				colName = cname
@@ -188,6 +200,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 					w.ContactsCsv[r][cname] = uv
 					continue
 				}
+				// skips linkedin
 				if strings.HasPrefix(uv, "https://www.linkedin.com") || strings.HasPrefix(uv, "https://linkedin.com") {
 					continue
 				}
@@ -204,7 +217,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity(webFetchWf, wbsTaskName, wbsTaskName, uef, colName, emRow, pls)
+	err := w.createCsvMergeEntity(webFetchWf, wbsTaskName, scrapedWbsRet, uef, colName, emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err

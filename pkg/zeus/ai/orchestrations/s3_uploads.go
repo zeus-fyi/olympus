@@ -183,3 +183,12 @@ func uploadFromInMemFs(ctx context.Context, b []byte, p *filepaths.Path) error {
 	}
 	return nil
 }
+
+func deleteFromS3(ctx context.Context, p *filepaths.Path) error {
+	err := athena.OvhS3Manager.DeleteObject(ctx, FlowsBucketName, p.FileOutPath())
+	if err != nil {
+		log.Err(err).Interface("p.FileOutPath()", p.FileOutPath()).Msg("deleteFromInMemFs: failed to del")
+		return err
+	}
+	return nil
+}

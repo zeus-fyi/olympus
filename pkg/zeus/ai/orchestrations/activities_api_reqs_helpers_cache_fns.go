@@ -55,7 +55,7 @@ func cacheIfCond(ctx context.Context, cp *MbChildSubProcessParams, r RouteTask, 
 }
 
 func checkIfCached(ctx context.Context, cp *MbChildSubProcessParams, r RouteTask, req *iris_api_requests.ApiProxyRequest) (string, bool) {
-	reqCached := false
+	var reqCached bool
 	var rg string
 	if r.Retrieval.WebFilters != nil && r.Retrieval.WebFilters.RoutingGroup != nil {
 		rg = *r.Retrieval.WebFilters.RoutingGroup
@@ -82,6 +82,9 @@ func checkIfCached(ctx context.Context, cp *MbChildSubProcessParams, r RouteTask
 			Nickname: ht.RequestCache,
 			Platform: rg,
 		}
+		//// clean cache debug
+		//p, _ := globalWfEntityStageNamePath(cp, uew)
+		//deleteFromS3(ctx, p)
 		uew, err = gs3globalWf(ctx, cp, uew)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to unmarshal response")
@@ -110,3 +113,6 @@ func checkIfCached(ctx context.Context, cp *MbChildSubProcessParams, r RouteTask
 	}
 	return ht.RequestCache, reqCached
 }
+
+// to debug ^ and comment out caching
+// reqCached

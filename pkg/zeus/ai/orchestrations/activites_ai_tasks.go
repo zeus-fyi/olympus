@@ -157,7 +157,7 @@ func CheckSchemaIDsAndValidFields(expSchemaID int, jr []artemis_orchestrations.J
 	return true
 }
 
-func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_users.OrgUser, aggInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, aggInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
 	var content string
 	if cp != nil {
 		in, werr := gs3wfs(ctx, cp)
@@ -192,7 +192,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	systemMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
 		Content: *aggInst.AggPrompt,
-		Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+		Name:    fmt.Sprintf("%d-%d", cp.Ou.OrgID, cp.Ou.UserID),
 	}
 	cr := openai.ChatCompletionRequest{
 		Model:       *aggInst.AggModel,
@@ -202,7 +202,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 			{
 				Role:    openai.ChatMessageRoleUser,
 				Content: content,
-				Name:    fmt.Sprintf("%d-%d", ou.OrgID, ou.UserID),
+				Name:    fmt.Sprintf("%d-%d", cp.Ou.OrgID, cp.Ou.UserID),
 			},
 		},
 	}
@@ -212,7 +212,7 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 	if *aggInst.AggMaxTokensPerTask > 0 {
 		cr.MaxTokens = *aggInst.AggMaxTokensPerTask
 	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
+	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, cp.Ou, OpenAiPlatform)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
@@ -248,8 +248,8 @@ func (z *ZeusAiPlatformActivities) AiAggregateTask(ctx context.Context, ou org_u
 		}, nil
 	} else {
 		log.Err(err).Msg("AiAggregateTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
-		aws_secrets.ClearOrgSecretCache(ou)
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
+		aws_secrets.ClearOrgSecretCache(cp.Ou)
+		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, cp.Ou, OpenAiPlatform)
 		if err != nil || ps == nil || ps.ApiKey == "" {
 			if err == nil {
 				err = fmt.Errorf("failed to get mockingbird secrets")

@@ -2,6 +2,7 @@ package ai_platform_service_orchestrations
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
@@ -67,30 +68,43 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					return err
 				}
 			case csvFormat:
-				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
+				aofoa := ao
+				aofoa.HeartbeatTimeout = 5 * time.Minute
+				aggCompCtx := workflow.WithActivityOptions(ctx, aofoa)
+				err = workflow.ExecuteActivity(aggCompCtx, z.CsvIterator, cp).Get(aggCompCtx, nil)
+				if err != nil {
+					logger.Error("failed to save agg csv response", "Error", err)
+					return err
+				}
+			case ingestData:
+				aofoa := ao
+				aofoa.HeartbeatTimeout = 10 * time.Minute
+				aggCompCtx := workflow.WithActivityOptions(ctx, aofoa)
 				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, getDummyChatCompResp()).Get(aggCompCtx, &cp.Tc.ResponseID)
 				if err != nil {
-					logger.Error("failed to save analysis read only response", "Error", err)
+					logger.Error("failed to save agg read only response", "Error", err)
 					return err
 				}
 				wr := getWr(cp, chunkOffset)
 				cp.Tc.ResponseFormat = csvFormat
-				recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveCsvTaskOutput, cp, wr).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
+				recordAggCtx := workflow.WithActivityOptions(ctx, aofoa)
+				err = workflow.ExecuteActivity(recordAggCtx, z.SaveCsvTaskOutput, cp, wr).Get(recordAggCtx, &cp.Tc.WorkflowResultID)
 				if err != nil {
-					logger.Error("failed to save csv analysis", "Error", err)
+					logger.Error("failed to save agg analysis", "Error", err)
 					return err
 				}
 			default:
+				aofoa := ao
+				aofoa.HeartbeatTimeout = 10 * time.Minute
 				log.Info().Interface("textFormat", text).Msg("agg: textFormat")
 				var aiAggResp *ChatCompletionQueryResponse
-				aggCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, ou, aggInst, cp).Get(aggCtx, &aiAggResp)
+				aggCtx := workflow.WithActivityOptions(ctx, aofoa)
+				err = workflow.ExecuteActivity(aggCtx, z.AiAggregateTask, aggInst, cp).Get(aggCtx, &aiAggResp)
 				if err != nil {
 					logger.Error("failed to run aggregation", "Error", err)
 					return err
 				}
-				aggCompCtx := workflow.WithActivityOptions(ctx, ao)
+				aggCompCtx := workflow.WithActivityOptions(ctx, aofoa)
 				err = workflow.ExecuteActivity(aggCompCtx, z.RecordCompletionResponse, ou, aiAggResp).Get(aggCompCtx, &cp.Tc.ResponseID)
 				if err != nil {
 					logger.Error("failed to save agg response", "Error", err)
@@ -105,7 +119,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					tmp += cv.Message.Content + "\n"
 				}
 				ia.TextInput = &tmp
-				recordAggCtx := workflow.WithActivityOptions(ctx, ao)
+				recordAggCtx := workflow.WithActivityOptions(ctx, aofoa)
 				err = workflow.ExecuteActivity(recordAggCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAggCtx, &cp.Tc.WorkflowResultID)
 				if err != nil {
 					logger.Error("failed to save aggregation resp", "Error", err)

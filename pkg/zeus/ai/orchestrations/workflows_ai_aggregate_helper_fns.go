@@ -10,6 +10,7 @@ import (
 )
 
 type InputDataAnalysisToAgg struct {
+	CsvResponse                 map[string]interface{}         `json:"csvResponse,omitempty"`
 	TextInput                   *string                        `json:"textInput,omitempty"`
 	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
 	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`
@@ -29,10 +30,14 @@ func getDefaultRetryPolicy() workflow.ActivityOptions {
 }
 
 func getWr(cp *MbChildSubProcessParams, chunkOffset int) *artemis_orchestrations.AIWorkflowAnalysisResult {
+	return getWrAndIter(cp, chunkOffset, 0)
+}
+
+func getWrAndIter(cp *MbChildSubProcessParams, chunkOffset, iter int) *artemis_orchestrations.AIWorkflowAnalysisResult {
 	wr := &artemis_orchestrations.AIWorkflowAnalysisResult{
 		OrchestrationID:       cp.Oj.OrchestrationID,
 		SourceTaskID:          cp.Tc.TaskID,
-		IterationCount:        0,
+		IterationCount:        iter,
 		ChunkOffset:           chunkOffset,
 		RunningCycleNumber:    cp.Wsr.RunCycle,
 		SearchWindowUnixStart: cp.Window.UnixStartTime,

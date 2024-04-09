@@ -187,7 +187,7 @@ export function Commands(props: any) {
                 <Button
                     variant="contained"
                     disabled={buttonDisabledCreate}
-                    onClick={() => onClickSubmit(3)}
+                    onClick={() => onClickSubmit(10)}
                     sx={{
                         mb: 2,
                         bgcolor: 'teal', // Replace 'dark teal' with the specific color code

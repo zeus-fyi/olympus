@@ -42,6 +42,7 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			}
 		}
 	}
+
 	params.Prompt = sg.GetPromptBody()
 	if len(params.Prompt) == 0 {
 		log.Warn().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("CreateJsonOutputModelResponse: prompt is empty")
@@ -85,6 +86,8 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 	if len(jsv) > 0 {
 		cr.JsonResponseResults = jsv
 	}
+	log.Info().Interface("len(cr.JsonResponseResults)", len(cr.JsonResponseResults)).Interface("len(sg.RegexSearchResults)", len(sg.RegexSearchResults)).Interface("len(sg.ApiResponseResults)", len(sg.ApiResponseResults)).Msg("CreateJsonOutputModelResponse }")
+
 	// temp
 	var jsff []artemis_orchestrations.JsonSchemaDefinition
 	for _, jt := range jsd {
@@ -92,31 +95,36 @@ func (z *ZeusAiPlatformActivities) CreateJsonOutputModelResponse(ctx context.Con
 			jsff = append(jsff, *jt)
 		}
 	}
+	//m := make(map[string]bool)
+	//for _, v := range sg.ApiResponseResults {
+	//	m[v.Source] = true
+	//}
 	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
-	for _, pv := range payloadMaps {
-		for k, v := range pv {
-			fmt.Println("CreateJsonOutputModelResponse ", "k: ", k, "v: ", v)
-		}
+	for _, pl := range payloadMaps {
+		fmt.Println(pl)
+		//tv, ok := pl["entity"]
+		//if !ok {
+		//	return nil, fmt.Errorf("not ok")
+		//}
+		//sv, ok := tv.(string)
+		//if !ok {
+		//	return nil, fmt.Errorf("not ok")
+		//}
+		//mv, ok := m[sv]
+		//if !mv || !ok {
+		//	return nil, fmt.Errorf("not ok")
+		//}
 	}
+	//dj := DebugJsonOutputs{
+	//	Mb:            mb,
+	//	Params:        params,
+	//	JsonResponses: payloadMaps,
+	//}
+	//dj.Save()
 	// end temp
 	activity.RecordHeartbeat(ctx, cr.Response.ID)
 	return cr, nil
 }
-
-/*
-	var jsff []artemis_orchestrations.JsonSchemaDefinition
-	for _, jt := range jsd {
-		if jt != nil {
-			jsff = append(jsff, *jt)
-		}
-	}
-	payloadMaps := artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsff)
-	for _, pv := range payloadMaps {
-		for k, v := range pv {
-			fmt.Println("k: ", k, "v: ", v)
-		}
-	}
-*/
 
 func getJsonSgChunkToProcess(mb *MbChildSubProcessParams, in *WorkflowStageIO) *hera_search.SearchResultGroup {
 	pr := in.WorkflowStageInfo.PromptReduction
@@ -130,6 +138,24 @@ func getJsonSgChunkToProcess(mb *MbChildSubProcessParams, in *WorkflowStageIO) *
 	} else {
 		sg = &hera_search.SearchResultGroup{
 			BodyPrompt:    pr.PromptReductionText.OutPromptChunks[mb.Wsr.ChunkOffset],
+			SearchResults: []hera_search.SearchResult{},
+		}
+	}
+	return sg
+}
+
+func getJsonSgChunkToProcess2(chunk int, mb *MbChildSubProcessParams, in *WorkflowStageIO) *hera_search.SearchResultGroup {
+	pr := in.WorkflowStageInfo.PromptReduction
+	var sg *hera_search.SearchResultGroup
+	if in.WorkflowStageInfo.PromptTextFromTextStage != "" {
+		sg = &hera_search.SearchResultGroup{
+			BodyPrompt: in.WorkflowStageInfo.PromptTextFromTextStage,
+		}
+	} else if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && mb.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
+		sg = pr.PromptReductionSearchResults.OutSearchGroups[chunk]
+	} else {
+		sg = &hera_search.SearchResultGroup{
+			BodyPrompt:    pr.PromptReductionText.OutPromptChunks[chunk],
 			SearchResults: []hera_search.SearchResult{},
 		}
 	}

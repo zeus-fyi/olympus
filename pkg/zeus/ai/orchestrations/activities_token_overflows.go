@@ -88,6 +88,10 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	}
 	chunkIterator := getChunkIteratorLen(pr)
 	cp.Tc.ChunkIterator = chunkIterator
+	//dbg := CsvIteratorDebug{
+	//	Cp: cp,
+	//}
+	//dbg.Save()
 	return cp, nil
 }
 
@@ -220,7 +224,10 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		splitIteration++
 		activity.RecordHeartbeat(ctx, fmt.Sprintf("splitIteration-%d", splitIteration))
 	}
-
+	if len(totalSearchResults) == splitIteration {
+		log.Warn().Msg("todo, truncate string")
+		return nil
+	}
 	return fmt.Errorf("TokenOverflowSearchResults: failed to reduce search results")
 }
 

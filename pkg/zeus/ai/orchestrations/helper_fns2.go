@@ -17,7 +17,7 @@ const (
 	inReplyToTweetID                    = "in_reply_to_tweet_id"
 	socialMediaEngagementResponseFormat = "social-media-engagement"
 	socialMediaExtractionResponseFormat = "social-media-extraction"
-	readOnlyFormat                      = "read-only"
+	ingestData                          = "ingest"
 	sendNextStage                       = "next"
 	csvFormat                           = "csv"
 	jsonFormat                          = "json"

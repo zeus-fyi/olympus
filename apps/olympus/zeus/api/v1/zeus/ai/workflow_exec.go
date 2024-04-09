@@ -3,15 +3,12 @@ package zeus_v1_ai
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
@@ -28,6 +25,7 @@ type WorkflowsActionsRequest struct {
 
 	WfSchemaFieldOverrides artemis_orchestrations.WorkflowSchemaOverrides       `json:"wfSchemaFieldOverrides,omitempty"`
 	WfRetrievalOverrides   map[string]artemis_orchestrations.RetrievalOverrides `json:"wfRetrievalPayloadOverrides,omitempty"`
+	WfTaskOverrides        map[string]artemis_orchestrations.TaskOverrides      `json:"wfTaskOverrides,omitempty"`
 
 	TaskOverrides             artemis_orchestrations.TaskOverrides                 `json:"taskOverrides,omitempty"`
 	SchemaFieldOverrides      artemis_orchestrations.SchemaOverrides               `json:"schemaFieldOverrides,omitempty"`
@@ -51,14 +49,14 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 
 	var rid int
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
@@ -70,7 +68,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 	switch w.Action {
 	case "start":
 		window, isCycleStepped := w.GetTimeSeriesIterInst()
-		err = w.ConvertWfStrIDs()
+		err := w.ConvertWfStrIDs()
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: ConvertWfStrIDs failed")
 			return c.JSON(http.StatusInternalServerError, nil)
@@ -85,18 +83,18 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
 			}
-			for ti, task := range resp[ri].WorkflowTasks {
-				tov, tok := w.TaskOverrides[task.AnalysisTaskName]
-				if tok {
-					resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
-				}
-				if task.AggTaskID != nil && *task.AggTaskID > 0 {
-					tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
-					if tok {
-						resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
-					}
-				}
-			}
+			//for ti, task := range resp[ri].WorkflowTasks {
+			//	tov, tok := w.TaskOverrides[task.AnalysisTaskName]
+			//	if tok {
+			//		resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
+			//	}
+			//	if task.AggTaskID != nil && *task.AggTaskID > 0 {
+			//		tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
+			//		if tok {
+			//			resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
+			//		}
+			//	}
+			//}
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}

@@ -89,6 +89,39 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 	return results, nil
 }
 
+func SelectAiWorkflowAnalysisResultsIds(ctx context.Context, w Window, ojIds, sourceTaskIds []int) ([]AIWorkflowAnalysisResult, error) {
+	q := sql_query_templates.QueryParams{}
+	// Then, select rows using the search window and source task IDs
+	q.RawQuery = `SELECT ar.workflow_result_id, ar.orchestration_id, ar.response_id, ar.source_task_id,ar.chunk_offset, ar.iteration_count,
+       					 ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end
+                  FROM ai_workflow_analysis_results ar
+                  JOIN completion_responses cr ON cr.response_id = ar.response_id	
+                  WHERE ar.skip_analysis = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end <= $2
+                    AND ar.source_task_id = ANY($3) AND ar.orchestration_id = ANY($4);`
+
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, w.UnixStartTime, w.UnixEndTime, pq.Array(sourceTaskIds), pq.Array(ojIds))
+	if err != nil {
+		log.Err(err).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []AIWorkflowAnalysisResult
+	for rows.Next() {
+		var result AIWorkflowAnalysisResult
+		err = rows.Scan(&result.WorkflowResultID, &result.OrchestrationID, &result.ResponseID, &result.SourceTaskID,
+			&result.ChunkOffset, &result.IterationCount, &result.RunningCycleNumber,
+			&result.SearchWindowUnixStart, &result.SearchWindowUnixEnd)
+		if err != nil {
+			log.Err(err).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
+			return nil, err
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
+}
+
 // todo more efficient way to do this
 
 func GenerateContentTextFromOpenAIResp(wrs []AIWorkflowAnalysisResult) (string, error) {

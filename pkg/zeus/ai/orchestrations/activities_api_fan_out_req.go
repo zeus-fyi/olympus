@@ -72,6 +72,8 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("default"))
 		}
 	}
+
+	log.Info().Interface("len(cp.Tc.RegexSearchResults)", len(cp.Tc.RegexSearchResults)).Interface("len(cp.Tc.ApiResponseResults)", len(cp.Tc.ApiResponseResults)).Msg("FanOutApiCallRequestTask {")
 	cp.Tc.RegexSearchResults = nil
 	cp.Tc.ApiResponseResults = nil
 	cp.Tc.JsonResponseResults = nil

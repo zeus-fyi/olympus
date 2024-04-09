@@ -53,7 +53,8 @@ func (z *ZeusAiPlatformActivities) SelectTaskDefinition(ctx context.Context, ou 
 	return tv, nil
 }
 
-func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
+func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, taskInst artemis_orchestrations.WorkflowTemplateData, cp *MbChildSubProcessParams) (*ChatCompletionQueryResponse, error) {
+	ou := cp.Ou
 	var content string
 	if cp != nil && cp.Wsr.InputID > 0 {
 		in, werr := gs3wfs(ctx, cp)
@@ -102,76 +103,29 @@ func (z *ZeusAiPlatformActivities) AiAnalysisTask(ctx context.Context, ou org_us
 		}
 		cr.Messages = append(cr.Messages, chatMessage)
 	}
-
 	if taskInst.AnalysisMaxTokensPerTask > 0 {
 		cr.MaxTokens = taskInst.AnalysisMaxTokensPerTask
-	}
-	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
-	if err != nil || ps == nil || ps.ApiKey == "" {
-		if err == nil {
-			err = fmt.Errorf("failed to get mockingbird secrets")
-		}
-		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
-		return nil, err
 	}
 	prompt := make(map[string]string)
 	prompt["prompt"] = taskInst.AnalysisPrompt
 	prompt["content"] = content
-	if ps.ApiKey == "" {
-		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed, using backup and deleting secret cache for org")
-		cres, cerr := hera_openai.HeraOpenAI.CreateChatCompletion(
-			ctx, cr,
-		)
-		if cerr == nil {
-			var sc string
-			for _, c := range cres.Choices {
-				sc += c.Message.Content + "\n"
-			}
-			prompt["response"] = sc
-			return &ChatCompletionQueryResponse{
-				Prompt:         prompt,
-				ResponseTaskID: taskInst.AnalysisTaskID,
-				Response:       cres,
-			}, nil
-		} else {
-			log.Err(cerr).Msg("AiAnalysisTask: CreateChatCompletion failed")
-			return nil, cerr
+	var oa hera_openai.OpenAI
+	ps, err := GetMockingBirdSecrets(ctx, ou)
+	if err != nil || ps == nil || ps.ApiKey == "" {
+		if err == nil {
+			err = fmt.Errorf("failed to get mockingbird secrets")
 		}
-	}
-
-	oc := hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
-	resp, err := oc.CreateChatCompletion(
-		ctx, cr,
-	)
-	if err == nil {
-		var sc string
-		for _, c := range resp.Choices {
-			sc += c.Message.Content + "\n"
-		}
-		prompt["response"] = sc
-		return &ChatCompletionQueryResponse{
-			Prompt:         prompt,
-			ResponseTaskID: taskInst.AnalysisTaskID,
-			Response:       resp,
-		}, nil
+		//log.Warn().Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
+		err = nil
+		oa = hera_openai.HeraOpenAI
 	} else {
-		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get response using user secrets, clearing cache and trying again")
-		aws_secrets.ClearOrgSecretCache(ou)
-		ps, err = aws_secrets.GetMockingbirdPlatformSecrets(ctx, ou, OpenAiPlatform)
-		if err != nil || ps == nil || ps.ApiKey == "" {
-			if err == nil {
-				err = fmt.Errorf("failed to get mockingbird secrets")
-			}
-			log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
-			return nil, err
-		}
+		oa = hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
 	}
-	oc = hera_openai.InitOrgHeraOpenAI(ps.ApiKey)
-	resp, err = oc.CreateChatCompletion(
+	resp, err := oa.CreateChatCompletion(
 		ctx, cr,
 	)
 	if err != nil {
-		log.Err(err).Msg("AiAnalysisTask: CreateChatCompletion failed")
+		log.Err(err).Msg("CsvAnalysisTask")
 		return nil, err
 	}
 	var sc string

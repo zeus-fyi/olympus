@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 )
 
 type GetTasksRequest struct {
@@ -64,14 +63,14 @@ func (w *GetTasksRequest) GetTask(c echo.Context, id int) error {
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 	tasks, err := artemis_orchestrations.SelectTask(c.Request().Context(), ou, id) // Use the ID
 	if err != nil {
 		log.Err(err).Msg("failed to get tasks")

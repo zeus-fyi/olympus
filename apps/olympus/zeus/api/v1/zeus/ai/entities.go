@@ -25,14 +25,14 @@ func CreateOrUpdateEntities(c echo.Context, ef []artemis_entities.EntitiesFilter
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 	for _, e := range ef {
 		mdb := artemis_entities.UserEntityMetadata{
 			JsonData: e.MetadataJsonb,
@@ -58,7 +58,7 @@ func CreateOrUpdateEntities(c echo.Context, ef []artemis_entities.EntitiesFilter
 			},
 			Ou: ou,
 		}
-		err = artemis_entities.InsertUserEntityLabeledMetadata(c.Request().Context(), urw)
+		err := artemis_entities.InsertUserEntityLabeledMetadata(c.Request().Context(), urw)
 		if err != nil {
 			log.Err(err).Msg("failed to insert user entity")
 			return c.JSON(http.StatusBadRequest, nil)

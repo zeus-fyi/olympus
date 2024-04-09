@@ -3,9 +3,7 @@ package zeus_v1_ai
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -84,18 +82,18 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
 			}
-			for ti, task := range resp[ri].WorkflowTasks {
-				tov, tok := w.TaskOverrides[task.AnalysisTaskName]
-				if tok {
-					resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
-				}
-				if task.AggTaskID != nil && *task.AggTaskID > 0 {
-					tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
-					if tok {
-						resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
-					}
-				}
-			}
+			//for ti, task := range resp[ri].WorkflowTasks {
+			//tov, tok := w.TaskOverrides[task.AnalysisTaskName]
+			//if tok {
+			//	resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
+			//}
+			//if task.AggTaskID != nil && *task.AggTaskID > 0 {
+			//	tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
+			//	if tok {
+			//		resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
+			//	}
+			//}
+			//}
 			if w.WfRetrievalOverrides != nil {
 				if wv, wok := w.WfRetrievalOverrides[wfName]; wok {
 					resp[ri].WorkflowOverrides.RetrievalOverrides = wv
@@ -104,6 +102,11 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			if w.WfSchemaFieldOverrides != nil {
 				if wv, wok := w.WfSchemaFieldOverrides[wfName]; wok {
 					resp[ri].WorkflowOverrides.SchemaFieldOverrides = wv
+				}
+			}
+			if w.WfTaskOverrides != nil {
+				if wv, wok := w.WfTaskOverrides[wfName]; wok {
+					resp[ri].WorkflowOverrides.TaskPromptOverrides = wv
 				}
 			}
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow

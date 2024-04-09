@@ -76,7 +76,7 @@ func (z *ZeusAiPlatformActivities) SocialDiscordTask(ctx context.Context, ou org
 		if err == nil {
 			err = fmt.Errorf("failed to get mockingbird secrets")
 		}
-		log.Err(err).Msg("AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
+		log.Err(err).Msg("SocialDiscordTask: AiAnalysisTask: GetMockingbirdPlatformSecrets: failed to get mockingbird secrets")
 		return nil, err
 	}
 	return nil, err

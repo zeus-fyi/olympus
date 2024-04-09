@@ -110,7 +110,9 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					return err
 				}
 			case csvFormat:
-				analysisCsvCompCtx := workflow.WithActivityOptions(ctx, ao)
+				aofoa := ao
+				aofoa.HeartbeatTimeout = 5 * time.Minute
+				analysisCsvCompCtx := workflow.WithActivityOptions(ctx, aofoa)
 				err = workflow.ExecuteActivity(analysisCsvCompCtx, z.CsvIterator, cp).Get(analysisCsvCompCtx, nil)
 				if err != nil {
 					logger.Error("failed to save analysis csv response", "Error", err)

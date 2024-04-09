@@ -14,6 +14,7 @@ import (
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	hera_openai "github.com/zeus-fyi/olympus/pkg/hera/openai"
+	"go.temporal.io/sdk/activity"
 )
 
 func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildSubProcessParams) error {
@@ -41,6 +42,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 			log.Err(err).Msg("CsvIterator: gws failed")
 			return err
 		}
+		activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%d", i))
 	}
 	return nil
 }

@@ -47,10 +47,12 @@ const (
 	InternalUserID1       = 7138958574876245567
 	InternalUserID2       = 1699642242976434000
 	InternalSharedUserID3 = 1710298581127603000
+
+	CustomerDemoOrgID = 1712629107490733000
 )
 
 func DoesUserHaveBillingMethod(ctx context.Context, userID int) (bool, error) {
-	if userID == InternalUserID || userID == InternalUserID1 || userID == InternalUserID2 || userID == InternalSharedUserID3 {
+	if userID == CustomerDemoOrgID || userID == InternalUserID || userID == InternalUserID1 || userID == InternalUserID2 || userID == InternalSharedUserID3 {
 		return true, nil
 	}
 	cID, err := QueryGetCustomerStripeID(ctx, userID)

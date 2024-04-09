@@ -4,6 +4,7 @@ metadata:
   name: "pandora"
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
     nginx.ingress.kubernetes.io/auth-url: https://aegis.zeus.fyi/v1/auth/7138983863666903883
 spec:
   ingressClassName: "nginx"

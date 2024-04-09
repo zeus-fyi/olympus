@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -80,14 +81,18 @@ func GetTokenCountEstimate(ctx context.Context, model, text string) (int, error)
 	res := resty_base.GetBaseRestyClient(apiReq.Url, api_auth_temporal.Bearer)
 	resp, err := res.R().SetBody(&apiReq.Payload).SetResult(&tc).Post("tokenize")
 	if err != nil {
-		log.Err(err).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate")
+		log.Err(err).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate 1")
 		return -1, err
 	}
+	if resp.StatusCode() == http.StatusRequestEntityTooLarge {
+		return 20000, nil
+	}
+
 	if resp != nil && resp.StatusCode() >= 400 {
 		if err == nil {
 			err = fmt.Errorf("GetTokenCountEstimate: failed to relay api request: status code %d", resp.StatusCode())
 		}
-		log.Err(err).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate")
+		log.Err(err).Interface("len(text)", len(text)).Interface("&apiReq.Payload)", &apiReq.Payload).Msg("Zeus: GetTokenCountEstimate 2")
 		return -1, err
 	}
 	return tc.Count, nil

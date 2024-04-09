@@ -9,7 +9,6 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
 )
 
@@ -50,14 +49,14 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, err := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 
 	var rid int
 	if w.CustomBasePeriod && w.CustomBasePeriodStepSize > 0 && w.CustomBasePeriodStepSizeUnit != "" {
@@ -69,7 +68,7 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 	switch w.Action {
 	case "start":
 		window, isCycleStepped := w.GetTimeSeriesIterInst()
-		err = w.ConvertWfStrIDs()
+		err := w.ConvertWfStrIDs()
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: ConvertWfStrIDs failed")
 			return c.JSON(http.StatusInternalServerError, nil)

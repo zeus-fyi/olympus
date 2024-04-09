@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
-	hestia_stripe "github.com/zeus-fyi/olympus/pkg/hestia/stripe"
 )
 
 func AiSchemasHandler(c echo.Context) error {
@@ -27,14 +26,14 @@ func CreateOrUpdateSchema(c echo.Context, js *artemis_orchestrations.JsonSchemaD
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if berr != nil {
-		log.Error().Err(berr).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if berr != nil {
+	//	log.Error().Err(berr).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 
 	if js == nil {
 		return c.JSON(http.StatusBadRequest, nil)

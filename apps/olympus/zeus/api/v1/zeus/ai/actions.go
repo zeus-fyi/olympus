@@ -61,14 +61,14 @@ func CreateOrUpdateAction(c echo.Context, act *artemis_orchestrations.TriggerAct
 	if !ok {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
-	if berr != nil {
-		log.Error().Err(berr).Msg("failed to check if user has billing method")
-		return c.JSON(http.StatusInternalServerError, nil)
-	}
-	if !isBillingSetup {
-		return c.JSON(http.StatusPreconditionFailed, nil)
-	}
+	//isBillingSetup, berr := hestia_stripe.DoesUserHaveBillingMethod(c.Request().Context(), ou.UserID)
+	//if berr != nil {
+	//	log.Error().Err(berr).Msg("failed to check if user has billing method")
+	//	return c.JSON(http.StatusInternalServerError, nil)
+	//}
+	//if !isBillingSetup {
+	//	return c.JSON(http.StatusPreconditionFailed, nil)
+	//}
 	if act.TriggerStrID != "" {
 		ti, err := strconv.Atoi(act.TriggerStrID)
 		if err != nil {

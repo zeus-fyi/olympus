@@ -537,6 +537,7 @@ func LimitTokenResp(elements []string) ([]string, error) {
 	for i, item := range elements {
 		tokenCount, err := GetTokenCountEstimate(context.Background(), "gpt-3.5", item)
 		if err != nil {
+			log.Err(err).Msg("LimitTokenResp")
 			return nil, err
 		}
 		totalCnt += tokenCount

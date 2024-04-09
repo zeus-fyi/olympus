@@ -75,7 +75,8 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 			tmp.SystemPromptExt = v
 			w.TaskOverrides[wbsTaskName] = tmp
 		}
-		w.createWfSchemaFieldOverride(liWf, wbsTaskName, "summary", prompts)
+		w.createWfTaskPromptOverrides(liWf, wbsTaskName, w.getPromptsMap())
+		//w.createWfSchemaFieldOverride(liWf, wbsTaskName, "summary", prompts)
 	}
 	return nil
 }
@@ -145,7 +146,8 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 			tmp.SystemPromptExt = v
 			w.TaskOverrides[wbsTaskName] = tmp
 		}
-		w.createWfSchemaFieldOverride(liBizWf, wbsTaskName, "summary", prompts)
+		w.createWfTaskPromptOverrides(liWf, wbsTaskName, w.getPromptsMap())
+		//w.createWfSchemaFieldOverride(liBizWf, wbsTaskName, "summary", prompts)
 	}
 	return nil
 }

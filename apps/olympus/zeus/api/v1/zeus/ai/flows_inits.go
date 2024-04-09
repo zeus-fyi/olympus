@@ -165,8 +165,6 @@ func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_use
 //	return nil
 //}
 
-/*
- */
 func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entities.EntitiesFilter) error {
 	if v, ok := w.Stages[websiteScrape]; !ok || !v {
 		return nil

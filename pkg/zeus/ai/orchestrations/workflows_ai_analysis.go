@@ -110,6 +110,13 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					return err
 				}
 			case csvFormat:
+				analysisCsvCompCtx := workflow.WithActivityOptions(ctx, ao)
+				err = workflow.ExecuteActivity(analysisCsvCompCtx, z.CsvIterator, cp).Get(analysisCsvCompCtx, nil)
+				if err != nil {
+					logger.Error("failed to save analysis csv response", "Error", err)
+					return err
+				}
+			case ingestData:
 				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
 				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, getDummyChatCompResp()).Get(analysisCompCtx, &cp.Tc.ResponseID)
 				if err != nil {

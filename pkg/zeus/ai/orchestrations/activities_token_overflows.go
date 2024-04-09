@@ -88,10 +88,10 @@ func (z *ZeusAiPlatformActivities) TokenOverflowReduction(ctx context.Context, c
 	}
 	chunkIterator := getChunkIteratorLen(pr)
 	cp.Tc.ChunkIterator = chunkIterator
-	dbg := CsvIteratorDebug{
-		Cp: cp,
-	}
-	dbg.Save()
+	//dbg := CsvIteratorDebug{
+	//	Cp: cp,
+	//}
+	//dbg.Save()
 	return cp, nil
 }
 

@@ -20,6 +20,7 @@ type AIWorkflowRetrievalResult struct {
 	SearchWindowUnixStart int             `json:"searchWindowUnixStart"`
 	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
 	SkipRetrieval         bool            `json:"skipRetrieval"`
+	Status                string          `json:"status"`
 	Metadata              json.RawMessage `json:"metadata,omitempty"`
 }
 

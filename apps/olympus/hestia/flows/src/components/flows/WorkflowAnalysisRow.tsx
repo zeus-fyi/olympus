@@ -161,6 +161,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.status}</TableCell>
                                             <TableCell>{data.skipRetrieval ? 'skipped' : 'used'}</TableCell>
                                             {/*<TableCell>{data.searchWindowUnixStart}</TableCell>*/}
+                                            <TableCell>{convertUnixNanoToLocalTimeString(data.workflowResultStrID)}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

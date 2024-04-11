@@ -166,6 +166,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 									JSON_BUILD_OBJECT(
 										'orchestrationID', ai_io.orchestration_id,
 										'workflowResultID', ai_io.workflow_result_id,
+										'workflowResultStrID', ai_io.workflow_result_id::text,
 										'sourceRetrievalID', ai_io.retrieval_id,  
 										'iterationCount', ai_io.iteration_count,
 										'status', ai_io.status,
@@ -195,6 +196,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 									JSONB_AGG(
 										JSON_BUILD_OBJECT(
 											'orchestrationID', ai_res.orchestration_id,
+											'workflowResultStrID', ai_res.workflow_result_id::text,
 											'workflowResultID', ai_res.workflow_result_id,
 											'responseID', ai_res.response_id,
 											'sourceTaskID', ai_res.source_task_id,

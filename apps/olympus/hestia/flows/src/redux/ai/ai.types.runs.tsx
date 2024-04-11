@@ -23,7 +23,7 @@ export interface AggregatedData {
 }
 
 export interface RetrievalResult {
-    workflowResultID: number;
+    workflowResultStrID: string;
     orchestrationID: number;
     retrievalID: number;
     retrievalName: string;

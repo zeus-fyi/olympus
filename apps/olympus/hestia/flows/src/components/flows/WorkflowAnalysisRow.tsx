@@ -147,13 +147,13 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                         <TableCell>Status</TableCell>
                                         <TableCell>Usage</TableCell>
                                         {/*<TableCell>Start</TableCell>*/}
-                                        {/*<TableCell>End</TableCell>*/}
+                                        <TableCell>End</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {row.aggregatedRetrievalResults && row.aggregatedRetrievalResults.map((data, dataIndex) => (
                                         <TableRow key={dataIndex}>
-                                            <TableCell>{data.workflowResultID}</TableCell>
+                                            <TableCell>{data.workflowResultStrID}</TableCell>
                                             <TableCell>{data.retrievalName}</TableCell>
                                             <TableCell>{data.runningCycleNumber}</TableCell>
                                             <TableCell>{data.iterationCount}</TableCell>
@@ -161,7 +161,6 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.status}</TableCell>
                                             <TableCell>{data.skipRetrieval ? 'skipped' : 'used'}</TableCell>
                                             {/*<TableCell>{data.searchWindowUnixStart}</TableCell>*/}
-                                            {/*<TableCell>{data.searchWindowUnixEnd}</TableCell>*/}
                                         </TableRow>
                                     ))}
                                 </TableBody>

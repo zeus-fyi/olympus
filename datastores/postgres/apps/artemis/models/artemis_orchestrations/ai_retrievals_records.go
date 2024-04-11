@@ -11,6 +11,7 @@ import (
 )
 
 type AIWorkflowRetrievalResult struct {
+	WorkflowResultStrID   string          `json:"workflowResultStrID,omitempty"`
 	WorkflowResultID      int             `json:"workflowResultID"`
 	OrchestrationID       int             `json:"orchestrationID"`
 	RetrievalName         string          `json:"retrievalName,omitempty"`
@@ -26,7 +27,7 @@ type AIWorkflowRetrievalResult struct {
 }
 
 func SelectRetrievalResultsIds(ctx context.Context, w Window, ojIds, sourceRetIds []int) ([]AIWorkflowRetrievalResult, error) {
-	query := `SELECT ar.workflow_result_id, ar.orchestration_id, ar.retrieval_id, ar.chunk_offset, ar.iteration_count,
+	query := `SELECT ar.workflow_result_id, ar.workflow_result_id::text, ar.orchestration_id, ar.retrieval_id, ar.chunk_offset, ar.iteration_count,
        ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end
        FROM ai_workflow_io_results ar
        WHERE ar.skip_retrieval = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end <= $2
@@ -40,7 +41,7 @@ func SelectRetrievalResultsIds(ctx context.Context, w Window, ojIds, sourceRetId
 	var results []AIWorkflowRetrievalResult
 	for rows.Next() {
 		var result AIWorkflowRetrievalResult
-		err = rows.Scan(&result.WorkflowResultID, &result.OrchestrationID, &result.RetrievalID,
+		err = rows.Scan(&result.WorkflowResultID, &result.WorkflowResultStrID, &result.OrchestrationID, &result.RetrievalID,
 			&result.ChunkOffset, &result.IterationCount, &result.RunningCycleNumber,
 			&result.SearchWindowUnixStart, &result.SearchWindowUnixEnd)
 		if err != nil {

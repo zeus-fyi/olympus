@@ -139,15 +139,15 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                             <Table size="small" aria-label="sub-analysis">
                                 <TableHead>
                                     <TableRow>
-                                        <TableCell>Workflow Result ID</TableCell>
+                                        <TableCell>Result ID</TableCell>
                                         <TableCell>Retrieval Name</TableCell>
-                                        <TableCell>Running Cycle Number</TableCell>
-                                        <TableCell>Iteration Count</TableCell>
-                                        <TableCell>Chunk Offset</TableCell>
+                                        <TableCell>Cycle</TableCell>
+                                        <TableCell>Iteration</TableCell>
+                                        <TableCell>Offset</TableCell>
                                         <TableCell>Status</TableCell>
                                         <TableCell>Usage</TableCell>
-                                        <TableCell>Start</TableCell>
-                                        <TableCell>End</TableCell>
+                                        {/*<TableCell>Start</TableCell>*/}
+                                        {/*<TableCell>End</TableCell>*/}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -160,8 +160,8 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                                             <TableCell>{data.chunkOffset}</TableCell>
                                             <TableCell>{data.status}</TableCell>
                                             <TableCell>{data.skipRetrieval ? 'skipped' : 'used'}</TableCell>
-                                            <TableCell>{data.searchWindowUnixStart}</TableCell>
-                                            <TableCell>{data.searchWindowUnixEnd}</TableCell>
+                                            {/*<TableCell>{data.searchWindowUnixStart}</TableCell>*/}
+                                            {/*<TableCell>{data.searchWindowUnixEnd}</TableCell>*/}
                                         </TableRow>
                                     ))}
                                 </TableBody>

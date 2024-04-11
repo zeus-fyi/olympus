@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	hera_search "github.com/zeus-fyi/olympus/datastores/postgres/apps/hera/models/search"
@@ -48,7 +49,7 @@ func getPendingRetWrAndIter(cp *MbChildSubProcessParams, iter int) *artemis_orch
 	wr := &artemis_orchestrations.AIWorkflowRetrievalResult{
 		WorkflowResultID:      ch.UnixTimeStampNow(),
 		OrchestrationID:       cp.Oj.OrchestrationID,
-		RetrievalID:           cp.Tc.TaskID,
+		RetrievalID:           aws.ToInt(cp.Tc.Retrieval.RetrievalID),
 		IterationCount:        iter,
 		ChunkOffset:           cp.Tc.ChunkIterator,
 		RunningCycleNumber:    cp.Wsr.RunCycle,

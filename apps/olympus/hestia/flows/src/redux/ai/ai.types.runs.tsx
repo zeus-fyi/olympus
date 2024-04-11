@@ -22,12 +22,29 @@ export interface AggregatedData {
     totalTokens: number;
 }
 
+export interface RetrievalResult {
+    workflowResultID: number;
+    orchestrationID: number;
+    retrievalID: number;
+    retrievalName: string;
+    runningCycleNumber: number;
+    iterationCount: number;
+    chunkOffset: number;
+    searchWindowUnixStart: number;
+    searchWindowUnixEnd: number;
+    skipRetrieval: boolean;
+    status: string;
+    metadata?: any;
+}
+
+
 export interface OrchestrationsAnalysis {
     totalWorkflowTokenUsage: number;
     runCycles: number;
     aggregatedData: AggregatedData[];
     orchestration: Orchestration;
     aggregatedEvalResults: EvalMetric[]; // Added array of EvalMetricsResult
+    aggregatedRetrievalResults: RetrievalResult[]
 }
 
 export interface OrchDetailsMap {

@@ -3,19 +3,21 @@ package artemis_orchestrations
 import "github.com/zeus-fyi/olympus/datastores/postgres/apps"
 
 func (s *OrchestrationsTestSuite) TestInsertWorkflowRetrievalResult() {
-	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	window := Window{
-		UnixStartTime: 1701886760,
-		UnixEndTime:   1701887760,
+		UnixStartTime: 1712702165,
+		UnixEndTime:   1712716565,
 	}
 	wr := &AIWorkflowRetrievalResult{
-		OrchestrationID:       1701135755183363072,
-		RetrievalID:           1701667813254964224, // Corrected field name
-		IterationCount:        2,
+		OrchestrationID:       1712702165698519000,
+		RetrievalID:           1712533371223555000,
+		ChunkOffset:           0,
+		IterationCount:        0,
 		RunningCycleNumber:    1,
+		Status:                "complete",
 		SearchWindowUnixStart: window.UnixStartTime,
 		SearchWindowUnixEnd:   window.UnixEndTime,
-		SkipRetrieval:         false, // Corrected field name
+		SkipRetrieval:         false,
 		Metadata:              nil,
 	}
 	err := InsertWorkflowRetrievalResult(ctx, wr)

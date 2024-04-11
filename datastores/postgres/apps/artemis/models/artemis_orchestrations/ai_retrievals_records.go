@@ -53,9 +53,9 @@ func SelectRetrievalResultsIds(ctx context.Context, w Window, ojIds, sourceRetId
 }
 
 func InsertWorkflowRetrievalResult(ctx context.Context, wr *AIWorkflowRetrievalResult) error {
-	q := `INSERT INTO ai_workflow_io_results(orchestration_id, retrieval_id, running_cycle_number, iteration_count, 
+	q := `INSERT INTO ai_workflow_io_results(orchestration_id, retrieval_id, status, running_cycle_number, iteration_count, 
                                          chunk_offset, search_window_unix_start, search_window_unix_end, skip_retrieval, metadata)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                   ON CONFLICT (orchestration_id, retrieval_id, running_cycle_number, iteration_count, chunk_offset)
                   DO UPDATE SET 
                       running_cycle_number = EXCLUDED.running_cycle_number,
@@ -65,7 +65,7 @@ func InsertWorkflowRetrievalResult(ctx context.Context, wr *AIWorkflowRetrievalR
                       metadata = EXCLUDED.metadata
                   RETURNING workflow_result_id;`
 	md := &pgtype.JSONB{Bytes: sanitizeBytesUTF8(wr.Metadata), Status: IsNull(wr.Metadata)}
-	err := apps.Pg.QueryRowWArgs(ctx, q, wr.OrchestrationID, wr.RetrievalID, wr.RunningCycleNumber,
+	err := apps.Pg.QueryRowWArgs(ctx, q, wr.OrchestrationID, wr.RetrievalID, wr.Status, wr.RunningCycleNumber,
 		wr.IterationCount, wr.ChunkOffset, wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd,
 		wr.SkipRetrieval, md).Scan(&wr.WorkflowResultID)
 	if err != nil {

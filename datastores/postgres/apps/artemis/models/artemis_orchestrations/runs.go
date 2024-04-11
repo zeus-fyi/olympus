@@ -27,10 +27,11 @@ type AggregatedData struct {
 }
 
 type OrchestrationsAnalysis struct {
-	TotalWorkflowTokenUsage int              `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
-	RunCycles               int              `db:"max_run_cycle" json:"runCycles"`
-	AggregatedData          []AggregatedData `db:"aggregated_data" json:"aggregatedData"`
-	AggregatedEvalResults   []EvalMetric     `json:"aggregatedEvalResults"`
+	TotalWorkflowTokenUsage    int                         `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
+	RunCycles                  int                         `db:"max_run_cycle" json:"runCycles"`
+	AggregatedData             []AggregatedData            `db:"aggregated_data" json:"aggregatedData,omitempty"`
+	AggregatedEvalResults      []EvalMetric                `json:"aggregatedEvalResults,omitempty"`
+	AggregatedRetrievalResults []AIWorkflowRetrievalResult `json:"aggregatedRetrievalResults,omitempty"`
 
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
 }
@@ -327,6 +328,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 				}
 			}
 		}
+		oj.AggregatedRetrievalResults = retd
 		oj.AggregatedData = agdd
 		var filteredResults []EvalMetric
 		seen := make(map[int]bool)

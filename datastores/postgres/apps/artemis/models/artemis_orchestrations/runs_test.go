@@ -47,9 +47,9 @@ func (s *OrchestrationsTestSuite) TestSelectRunsUI() {
 func (s *OrchestrationsTestSuite) TestSelectRunWithRet() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	ou := org_users.OrgUser{}
-	ou.OrgID = 1710298581127603000
+	ou.OrgID = 1685378241971196000
 	ou.UserID = s.Tc.ProductionLocalTemporalUserID
-	ojs, err := SelectAiSystemOrchestrations(ctx, ou, 1711605286285315000)
+	ojs, err := SelectAiSystemOrchestrations(ctx, ou, 1712702165698519000)
 	s.Require().Nil(err)
 	s.Assert().NotEmpty(ojs)
 }

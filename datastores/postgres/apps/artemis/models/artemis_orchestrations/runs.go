@@ -286,10 +286,10 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 								COALESCE(aggregated_eval_results, '[]'::jsonb) AS aggregated_eval_results,
 								COALESCE(cret.ret_aggregated_data, '[]'::jsonb) AS ret_aggregated_data
 							 FROM cte_a ca 
+							 LEFT JOIN cte_ret_agg cret ON cret.orchestration_id = ca.orchestration_id
 							 LEFT JOIN cte_1 c1 ON ca.orchestration_id = c1.orchestration_id
 							 LEFT JOIN cte_00 c00 ON c00.orchestration_id = c1.orchestration_id
 							 LEFT JOIN cte_2 c2 ON c2.orchestration_id = c1.orchestration_id
-							 LEFT JOIN cte_ret_agg cret ON cret.orchestration_id = c1.orchestration_id
 							 GROUP BY ca.orchestration_id,
 								ca.orchestration_id::text,
 								ca.orchestration_name,

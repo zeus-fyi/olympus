@@ -13,7 +13,8 @@ import (
 type AIWorkflowRetrievalResult struct {
 	WorkflowResultID      int             `json:"workflowResultID"`
 	OrchestrationID       int             `json:"orchestrationID"`
-	RetrievalID           int             `json:"sourceTaskID"`
+	RetrievalName         string          `json:"retrievalName,omitempty"`
+	RetrievalID           int             `json:"retrievalID"`
 	IterationCount        int             `json:"iterationCount"`
 	ChunkOffset           int             `json:"chunkOffset"`
 	RunningCycleNumber    int             `json:"runningCycleNumber"`

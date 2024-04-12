@@ -75,14 +75,12 @@ type GetRunsActionsRequest struct {
 }
 
 func GetRunActionsRequestHandler(c echo.Context) error {
-	// Extracting the ID from the route parameter
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		log.Err(err).Msg("invalid ID parameter")
 		return c.JSON(http.StatusBadRequest, "invalid ID parameter")
 	}
-
 	request := new(GetRunsActionsRequest)
 	if err = c.Bind(request); err != nil {
 		return err

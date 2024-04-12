@@ -27,10 +27,11 @@ type AggregatedData struct {
 }
 
 type OrchestrationsAnalysis struct {
-	TotalWorkflowTokenUsage int              `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
-	RunCycles               int              `db:"max_run_cycle" json:"runCycles"`
-	AggregatedData          []AggregatedData `db:"aggregated_data" json:"aggregatedData"`
-	AggregatedEvalResults   []EvalMetric     `json:"aggregatedEvalResults"`
+	TotalWorkflowTokenUsage    int                         `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
+	RunCycles                  int                         `db:"max_run_cycle" json:"runCycles"`
+	AggregatedData             []AggregatedData            `db:"aggregated_data" json:"aggregatedData,omitempty"`
+	AggregatedEvalResults      []EvalMetric                `json:"aggregatedEvalResults,omitempty"`
+	AggregatedRetrievalResults []AIWorkflowRetrievalResult `json:"aggregatedRetrievalResults,omitempty"`
 
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
 }
@@ -67,6 +68,44 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 						ORDER BY
 							o.orchestration_id DESC
 						` + limit + `
+					), cte_ret_status AS (
+						SELECT
+							o.orchestration_id,
+							o.orchestration_name,
+							o.group_name,
+							o.orchestration_type,
+							o.active,
+							ai_io.workflow_result_id,
+							ai_io.status,
+							ai_io.retrieval_id AS retrieval_id, 
+							ai_io.iteration_count,
+							ai_io.chunk_offset,
+							ai_io.running_cycle_number,
+							ai_io.skip_retrieval AS skip_retrieval, 
+							ai_io.search_window_unix_start,
+							ai_io.search_window_unix_end,
+							ai_io.metadata
+						FROM 
+							cte_a o 
+						JOIN
+							public.ai_workflow_io_results ai_io ON ai_io.orchestration_id = o.orchestration_id
+						WHERE 
+							o.org_id = $1 
+						GROUP BY                             
+							o.orchestration_id,
+							o.orchestration_name,
+							o.group_name,
+							o.orchestration_type,
+							o.active,
+							ai_io.workflow_result_id,
+							ai_io.retrieval_id,
+							ai_io.iteration_count,
+							ai_io.chunk_offset,
+							ai_io.running_cycle_number,
+							ai_io.skip_retrieval,
+							ai_io.search_window_unix_start,
+							ai_io.search_window_unix_end,
+							ai_io.metadata
 					), cte_0 AS (
 						SELECT
 							o.orchestration_id,
@@ -116,6 +155,37 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 								public.completion_responses AS comp_resp ON comp_resp.response_id = ai_res.response_id
 							GROUP BY
 								ai_res.orchestration_id
+						), cte_ret_agg AS (
+							SELECT 
+								ai_io.orchestration_id,
+								ai_io.orchestration_type,
+								ai_io.orchestration_name,
+								ai_io.active,
+								ai_io.group_name,
+								JSONB_AGG(
+									JSON_BUILD_OBJECT(
+										'orchestrationID', ai_io.orchestration_id,
+										'workflowResultID', ai_io.workflow_result_id,
+										'workflowResultStrID', ai_io.workflow_result_id::text,
+										'sourceRetrievalID', ai_io.retrieval_id,  
+										'iterationCount', ai_io.iteration_count,
+										'status', ai_io.status,
+										'chunkOffset', ai_io.chunk_offset,
+										'skipRetrieval', ai_io.skip_retrieval, 
+										'retrievalName', task_lib.retrieval_name,
+										'retrievalPlatform', task_lib.retrieval_platform,
+										'retrievalGroup', task_lib.retrieval_group,
+										'runningCycleNumber', ai_io.running_cycle_number,
+										'searchWindowUnixStart', ai_io.search_window_unix_start,
+										'searchWindowUnixEnd', ai_io.search_window_unix_end,
+										'metadata', ai_io.metadata
+									) ORDER BY ai_io.running_cycle_number DESC, ai_io.iteration_count DESC, ai_io.retrieval_id DESC
+								) AS ret_aggregated_data
+							FROM cte_ret_status ai_io  
+							JOIN 
+								public.ai_retrieval_library AS task_lib ON task_lib.retrieval_id = ai_io.retrieval_id 
+							GROUP BY
+								ai_io.orchestration_id, ai_io.orchestration_type, ai_io.group_name, ai_io.orchestration_name, ai_io.active
 						), cte_1 AS (
 							SELECT 
 							ai_res.orchestration_id,
@@ -126,6 +196,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 									JSONB_AGG(
 										JSON_BUILD_OBJECT(
 											'orchestrationID', ai_res.orchestration_id,
+											'workflowResultStrID', ai_res.workflow_result_id::text,
 											'workflowResultID', ai_res.workflow_result_id,
 											'responseID', ai_res.response_id,
 											'sourceTaskID', ai_res.source_task_id,
@@ -214,8 +285,10 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 							  	COALESCE(c00.max_run_cycle, 0),
 							  	COALESCE(c00.total_workflow_token_usage, 0) AS total_workflow_token_usage,
 								COALESCE(aggregated_data, '[]'::jsonb) AS aggregated_data,
-								COALESCE(aggregated_eval_results, '[]'::jsonb) AS aggregated_eval_results
+								COALESCE(aggregated_eval_results, '[]'::jsonb) AS aggregated_eval_results,
+								COALESCE(cret.ret_aggregated_data, '[]'::jsonb) AS ret_aggregated_data
 							 FROM cte_a ca 
+							 LEFT JOIN cte_ret_agg cret ON cret.orchestration_id = ca.orchestration_id
 							 LEFT JOIN cte_1 c1 ON ca.orchestration_id = c1.orchestration_id
 							 LEFT JOIN cte_00 c00 ON c00.orchestration_id = c1.orchestration_id
 							 LEFT JOIN cte_2 c2 ON c2.orchestration_id = c1.orchestration_id
@@ -224,7 +297,8 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 								ca.orchestration_name,
 								ca.group_name,
 								ca.orchestration_type,
-								ca.active, c00.max_run_cycle, c00.total_workflow_token_usage, aggregated_data, aggregated_eval_results
+								ca.active, c00.max_run_cycle, c00.total_workflow_token_usage,
+								aggregated_data, aggregated_eval_results, ret_aggregated_data
 							  ORDER BY ca.orchestration_id DESC;`
 
 	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
@@ -237,8 +311,9 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 		oj := OrchestrationsAnalysis{}
 		var evals []EvalMetric
 		var agdd []AggregatedData
+		var retd []AIWorkflowRetrievalResult
 		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationStrID, &oj.OrchestrationName, &oj.GroupName,
-			&oj.Type, &oj.Active, &oj.RunCycles, &oj.TotalWorkflowTokenUsage, &agdd, &evals)
+			&oj.Type, &oj.Active, &oj.RunCycles, &oj.TotalWorkflowTokenUsage, &agdd, &evals, &retd)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return nil, rowErr
@@ -255,6 +330,7 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 				}
 			}
 		}
+		oj.AggregatedRetrievalResults = retd
 		oj.AggregatedData = agdd
 		var filteredResults []EvalMetric
 		seen := make(map[int]bool)

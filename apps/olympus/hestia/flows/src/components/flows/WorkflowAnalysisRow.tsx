@@ -134,6 +134,47 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                     <Collapse in={open} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 1 }}>
                             <Typography variant="h6" gutterBottom component="div">
+                                Retrieval Details
+                            </Typography>
+                            <Table size="small" aria-label="sub-analysis">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Result ID</TableCell>
+                                        <TableCell>Retrieval Name</TableCell>
+                                        <TableCell>Cycle</TableCell>
+                                        <TableCell>Iteration</TableCell>
+                                        <TableCell>Offset</TableCell>
+                                        <TableCell>Status</TableCell>
+                                        <TableCell>Usage</TableCell>
+                                        {/*<TableCell>Start</TableCell>*/}
+                                        <TableCell>End</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {row.aggregatedRetrievalResults && row.aggregatedRetrievalResults.map((data, dataIndex) => (
+                                        <TableRow key={dataIndex}>
+                                            <TableCell>{data.workflowResultStrID}</TableCell>
+                                            <TableCell>{data.retrievalName}</TableCell>
+                                            <TableCell>{data.runningCycleNumber}</TableCell>
+                                            <TableCell>{data.iterationCount}</TableCell>
+                                            <TableCell>{data.chunkOffset}</TableCell>
+                                            <TableCell>{data.status}</TableCell>
+                                            <TableCell>{data.skipRetrieval ? 'skipped' : 'used'}</TableCell>
+                                            {/*<TableCell>{data.searchWindowUnixStart}</TableCell>*/}
+                                            <TableCell>{convertUnixNanoToLocalTimeString(data.workflowResultStrID)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Box>
+                    </Collapse>
+                </TableCell>
+            </TableRow>
+            <TableRow>
+                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
+                    <Collapse in={open} timeout="auto" unmountOnExit>
+                        <Box sx={{ margin: 1 }}>
+                            <Typography variant="h6" gutterBottom component="div">
                                 Run Details
                             </Typography>
                             <Table size="small" aria-label="sub-analysis">

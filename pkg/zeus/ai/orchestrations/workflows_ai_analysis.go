@@ -135,13 +135,15 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 			default:
 				var aiResp *ChatCompletionQueryResponse
-				analysisCtx := workflow.WithActivityOptions(ctx, ao)
-				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, ou, analysisInst, cp).Get(analysisCtx, &aiResp)
+				aofoa := ao
+				aofoa.HeartbeatTimeout = 5 * time.Minute
+				analysisCtx := workflow.WithActivityOptions(ctx, aofoa)
+				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, analysisInst, cp).Get(analysisCtx, &aiResp)
 				if err != nil {
 					logger.Error("failed to run analysis", "Error", err)
 					return err
 				}
-				analysisCompCtx := workflow.WithActivityOptions(ctx, ao)
+				analysisCompCtx := workflow.WithActivityOptions(ctx, aofoa)
 				err = workflow.ExecuteActivity(analysisCompCtx, z.RecordCompletionResponse, ou, aiResp).Get(analysisCompCtx, &cp.Tc.ResponseID)
 				if err != nil {
 					logger.Error("failed to save analysis response", "Error", err)
@@ -156,7 +158,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					tmp += cv.Message.Content + "\n"
 				}
 				ia.TextInput = &tmp
-				recordAnalysisCtx := workflow.WithActivityOptions(ctx, ao)
+				recordAnalysisCtx := workflow.WithActivityOptions(ctx, aofoa)
 				err = workflow.ExecuteActivity(recordAnalysisCtx, z.SaveTaskOutput, wr, cp, ia).Get(recordAnalysisCtx, &cp.Tc.WorkflowResultID)
 				if err != nil {
 					logger.Error("failed to save analysis", "Error", err)

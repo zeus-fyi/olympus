@@ -44,7 +44,7 @@ func FanOutInitSetup(ctx context.Context, mb *MbChildSubProcessParams) (map[int]
 	return sm, nil
 }
 
-func getPendingRetWrAndIter(cp *MbChildSubProcessParams, iter int) *artemis_orchestrations.AIWorkflowRetrievalResult {
+func getPendingRetWrAndIter(cp *MbChildSubProcessParams, iter, tc int) *artemis_orchestrations.AIWorkflowRetrievalResult {
 	ch := chronos.Chronos{}
 	wr := &artemis_orchestrations.AIWorkflowRetrievalResult{
 		WorkflowResultID:      ch.UnixTimeStampNow(),
@@ -55,6 +55,7 @@ func getPendingRetWrAndIter(cp *MbChildSubProcessParams, iter int) *artemis_orch
 		RunningCycleNumber:    cp.Wsr.RunCycle,
 		SearchWindowUnixStart: cp.Window.UnixStartTime,
 		SearchWindowUnixEnd:   cp.Window.UnixEndTime,
+		Status:                fmt.Sprintf("complete (%d/%d)", iter+1, tc),
 		SkipRetrieval:         false,
 	}
 	return wr
@@ -104,7 +105,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 					continue
 				}
 				log.Info().Interface("pi", pi).Msg("FanOutApiCallRequestTask: starting")
-				cp.Tc.WorkflowRetrievalResult = getPendingRetWrAndIter(cp, pi)
+				cp.Tc.WorkflowRetrievalResult = getPendingRetWrAndIter(cp, pi, len(echoReqs))
 				rt.RouteInfo.Payload = ple
 				_, err := na.ApiCallRequestTask(ctx, rt, cp)
 				if err != nil {
@@ -148,7 +149,6 @@ func SaveResult(ctx context.Context, cp *MbChildSubProcessParams, sg *hera_searc
 		log.Warn().Msg("SaveResult: cp or sg is nil")
 		return nil, nil
 	}
-	cp.Tc.WorkflowRetrievalResult.Status = "complete"
 	err := saveRetrievalResp(ctx, cp, sres)
 	if err != nil {
 		log.Err(err).Msg("SaveResult: saveRetrievalResp failed to save")

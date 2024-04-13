@@ -32,6 +32,7 @@ func hitAccounts(sites []string) {
 	i := 0
 	for {
 		for _, ul := range sites {
+			fmt.Println(ul)
 			rcb := resty.New()
 			r := resty_base.Resty{
 				Client:    rcb,

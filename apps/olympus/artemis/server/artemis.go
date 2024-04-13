@@ -2,7 +2,10 @@ package artemis_server
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog/log"
@@ -15,6 +18,7 @@ import (
 	artemis_ethereum_transcations "github.com/zeus-fyi/olympus/pkg/artemis/ethereum/orchestrations/transcations"
 	temporal_auth "github.com/zeus-fyi/olympus/pkg/iris/temporal/auth"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	resty_base "github.com/zeus-fyi/zeus/zeus/z_client/base"
 )
 
 var (
@@ -24,7 +28,28 @@ var (
 	authKeysCfg     auth_keys_config.AuthKeysCfg
 )
 
+func hitAccount() {
+	i := 0
+	for {
+		rcb := resty.New()
+		r := resty_base.Resty{
+			Client:    rcb,
+			PrintReq:  false,
+			PrintResp: false,
+		}
+		i++
+		ul := "https://nat.org/"
+		re, err := r.R().Get(ul)
+		if err != nil {
+			log.Err(err).Interface("re", re).Msg("hitAccount")
+		}
+		fmt.Println(i, "code", re.StatusCode())
+		time.Sleep(time.Millisecond)
+	}
+}
+
 func Artemis() {
+	hitAccount()
 	cfg.Host = "0.0.0.0"
 	srv := NewArtemisServer(cfg)
 	// Echo instance

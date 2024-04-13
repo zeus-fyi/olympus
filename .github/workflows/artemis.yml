@@ -11,6 +11,7 @@ on:
     branches:
       - main
       - dev
+      - add-flows
 
 permissions:
   contents: read

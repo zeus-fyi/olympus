@@ -51,7 +51,7 @@ func hitAccounts(sites []string) {
 }
 
 func Artemis() {
-	sites := []string{"https://ggml.ai/", "https://aigrant.org/", "https: //www.sequoiacap.com/", "https://nat.org/", "https://scrollprize.org/", "https://elevenlabs.io/", "https://character.ai/", "https://pika.art/home",
+	sites := []string{"https://ggml.ai/", "https://aigrant.org/", "https://sequoiacap.com/", "https://nat.org/", "https://scrollprize.org/", "https://elevenlabs.io/", "https://character.ai/", "https://pika.art/home",
 		"https://californiaforever.com/", "https://wandb.ai/site/", "https://pioneer.app/"}
 	hitAccounts(sites)
 	cfg.Host = "0.0.0.0"

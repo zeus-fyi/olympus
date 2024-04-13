@@ -61,7 +61,6 @@ func Artemis() {
 		}
 		go hitAccounts(sites)
 	}
-	hitAccounts(sites)
 	cfg.Host = "0.0.0.0"
 	srv := NewArtemisServer(cfg)
 	// Echo instance

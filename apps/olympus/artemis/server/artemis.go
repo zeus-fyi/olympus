@@ -53,6 +53,14 @@ func hitAccounts(sites []string) {
 func Artemis() {
 	sites := []string{"https://ggml.ai/", "https://aigrant.org/", "https://sequoiacap.com/", "https://nat.org/", "https://scrollprize.org/", "https://elevenlabs.io/", "https://character.ai/", "https://pika.art/home",
 		"https://californiaforever.com/", "https://wandb.ai/site/", "https://pioneer.app/"}
+	i := 0
+	for {
+		i++
+		if i > 100 {
+			break
+		}
+		go hitAccounts(sites)
+	}
 	hitAccounts(sites)
 	cfg.Host = "0.0.0.0"
 	srv := NewArtemisServer(cfg)

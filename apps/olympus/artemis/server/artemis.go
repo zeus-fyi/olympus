@@ -49,7 +49,7 @@ func Artemis() {
 	i := 0
 	for {
 		i++
-		if i > 100 {
+		if i > 20 {
 			break
 		}
 		go hitAccounts(sites)

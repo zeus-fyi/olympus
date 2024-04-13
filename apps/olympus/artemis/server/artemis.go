@@ -28,28 +28,31 @@ var (
 	authKeysCfg     auth_keys_config.AuthKeysCfg
 )
 
-func hitAccount() {
+func hitAccounts(sites []string) {
 	i := 0
 	for {
-		rcb := resty.New()
-		r := resty_base.Resty{
-			Client:    rcb,
-			PrintReq:  false,
-			PrintResp: false,
+		for _, ul := range sites {
+			rcb := resty.New()
+			r := resty_base.Resty{
+				Client:    rcb,
+				PrintReq:  false,
+				PrintResp: false,
+			}
+			i++
+			re, err := r.R().Get(ul)
+			if err != nil {
+				log.Err(err).Interface("re", re.RawResponse).Msg("hitAccount")
+			}
+			fmt.Println(i, "code", re.StatusCode())
+			time.Sleep(time.Millisecond)
 		}
-		i++
-		ul := "https://nat.org/"
-		re, err := r.R().Get(ul)
-		if err != nil {
-			log.Err(err).Interface("re", re).Msg("hitAccount")
-		}
-		fmt.Println(i, "code", re.StatusCode())
-		time.Sleep(time.Millisecond)
 	}
 }
 
 func Artemis() {
-	hitAccount()
+	sites := []string{"https://ggml.ai/", "https://aigrant.org/", "https: //www.sequoiacap.com/", "https://nat.org/", "https://scrollprize.org/", "https://elevenlabs.io/", "https://character.ai/", "https://pika.art/home",
+		"https://californiaforever.com/", "https://wandb.ai/site/", "https://pioneer.app/"}
+	hitAccounts(sites)
 	cfg.Host = "0.0.0.0"
 	srv := NewArtemisServer(cfg)
 	// Echo instance

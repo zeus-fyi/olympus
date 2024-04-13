@@ -2,6 +2,7 @@ package zeus_core
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/zeus/zeus/z_client/zeus_common_types"
@@ -27,6 +28,20 @@ func (d *DeploymentsTestSuite) TestGetDeployment() {
 	dep, err := d.K.GetDeployment(ctx, kns, "eth-indexer", nil)
 	d.Require().Nil(err)
 	d.Require().NotEmpty(dep)
+}
+
+func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentArtemis() {
+
+	i := 0
+	for {
+		var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "artemis"}
+		dep, err := d.K.RolloutRestartDeployment(ctx, kns, "artemis", nil)
+		d.Require().Nil(err)
+		d.Require().NotEmpty(dep)
+		i++
+		tmp := i % 10
+		time.Sleep(time.Duration(tmp) * time.Minute)
+	}
 }
 
 func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentZeus() {

@@ -2,7 +2,6 @@ package ai_platform_service_orchestrations
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/rs/zerolog/log"
@@ -13,38 +12,6 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/athena"
 	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
-
-type WfStatus struct {
-	TotalApiRequests    int `json:"totalApiRequests"`
-	CompleteApiRequests int `json:"completeApiRequests"`
-
-	TotalCsvElements    int `json:"totalCsvElements"`
-	CompleteCsvElements int `json:"completeCsvElements"`
-}
-
-func saveWfStatus(ctx context.Context, cp *MbChildSubProcessParams, wfs WfStatus) error {
-	err := s3wsCustomTaskName(ctx, cp, cp.GetRunStatusName(), wfs)
-	if err != nil {
-		log.Err(err).Msg("saveWfStatus: failed")
-		return err
-	}
-	return nil
-}
-
-func getWfStatus(ctx context.Context, cp *MbChildSubProcessParams) (*WfStatus, error) {
-	b, err := gs3wfsCustomTaskName(ctx, cp, cp.GetRunStatusName())
-	if err != nil {
-		log.Err(err).Msg("getWfStatus: failed")
-		return nil, err
-	}
-	wfs := &WfStatus{}
-	err = json.Unmarshal(b.Bytes(), wfs)
-	if err != nil {
-		log.Err(err).Msg("getWfStatus: failed")
-		return nil, err
-	}
-	return wfs, nil
-}
 
 func s3SetupCheck(ctx context.Context) error {
 	if athena.OvhS3Manager.AwsS3Client == nil {

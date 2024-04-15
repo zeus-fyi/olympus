@@ -25,13 +25,13 @@ export function SetupCard(props: any) {
                     <Box sx={{mb: 2}}>
                         <Divider/>
                     </Box>
-                    <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>
-                        <Checkbox
-                            checked={gs}
-                            onChange={handleChangeGs}
-                        />
-                        <Typography variant="body1">Google Search</Typography>
-                    </Stack>
+                    {/*<Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0}}>*/}
+                    {/*    <Checkbox*/}
+                    {/*        checked={gs}*/}
+                    {/*        onChange={handleChangeGs}*/}
+                    {/*    />*/}
+                    {/*    <Typography variant="body1">Google Search</Typography>*/}
+                    {/*</Stack>*/}
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 0, mr: 4}}>
                         <Checkbox
                             checked={checked}

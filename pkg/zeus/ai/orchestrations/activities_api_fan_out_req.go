@@ -88,17 +88,8 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 	echoReqs := getPayloads(cp)
 	wio, werr := gs3wfs(ctx, cp)
 	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		log.Err(werr).Msg("FanOutApiCallRequestTask: failed to select workflow io")
 		return nil, werr
-	}
-	wsr, werr := getWfStatus(ctx, cp)
-	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
-		return nil, werr
-	}
-	wsr.TotalApiRequests = len(echoReqs)
-	if len(echoReqs) == 0 {
-		wsr.TotalApiRequests = 1
 	}
 	log.Info().Interface("inputID", cp.Wsr.InputID).Interface("wio.WorkflowStageInfo.ApiIterationCount", wio.WorkflowStageInfo.ApiIterationCount).Msg("TokenOverflowReduction: wio")
 	for _, rtas := range rts {
@@ -121,17 +112,6 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 					log.Err(err).Interface("pi", pi).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
 				}
-				if wsr != nil {
-					wsr.CompleteApiRequests = pi + 1
-					err = saveWfStatus(ctx, cp, *wsr)
-					if err != nil {
-						log.Err(err).Interface("pi", pi).Msg("FanOutApiCallRequestTask: failed")
-						err = nil
-					}
-				} else {
-					log.Warn().Msg("wsr nil")
-				}
-
 				activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%d", pi))
 			}
 		case bulkApiReq:
@@ -141,7 +121,6 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				log.Err(err).Interface("len(pls)", len(echoReqs)).Msg("FanOutApiCallRequestTask: bulk failed")
 				return nil, err
 			}
-			wsr.CompleteApiRequests = 1
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("bulk"))
 		default:
 			if len(echoReqs) > 1 {
@@ -154,7 +133,6 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				log.Err(err).Msg("FanOutApiCallRequestTask: default failed")
 				return nil, err
 			}
-			wsr.CompleteApiRequests = 1
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("default"))
 		}
 	}

@@ -27,13 +27,23 @@ type AggregatedData struct {
 }
 
 type OrchestrationsAnalysis struct {
-	TotalWorkflowTokenUsage    int                         `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
-	RunCycles                  int                         `db:"max_run_cycle" json:"runCycles"`
-	AggregatedData             []AggregatedData            `db:"aggregated_data" json:"aggregatedData,omitempty"`
-	AggregatedEvalResults      []EvalMetric                `json:"aggregatedEvalResults,omitempty"`
-	AggregatedRetrievalResults []AIWorkflowRetrievalResult `json:"aggregatedRetrievalResults,omitempty"`
-
+	TotalWorkflowTokenUsage              int                         `db:"total_workflow_token_usage" json:"totalWorkflowTokenUsage"`
+	RunCycles                            int                         `db:"max_run_cycle" json:"runCycles"`
+	CompleteApiRequests                  int                         `json:"completeApiRequests"`
+	TotalApiRequests                     int                         `json:"totalApiRequests"`
+	TotalCsvCells                        int                         `json:"totalCsvCells"`
+	AggregatedData                       []AggregatedData            `db:"aggregated_data" json:"aggregatedData,omitempty"`
+	AggregatedEvalResults                []EvalMetric                `json:"aggregatedEvalResults,omitempty"`
+	AggregatedRetrievalResults           []AIWorkflowRetrievalResult `json:"aggregatedRetrievalResults,omitempty"`
+	WorkflowStatus                       *WfStatus                   `json:"workflowStatus,omitempty"`
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
+}
+
+type WfStatus struct {
+	TotalApiRequests    int `json:"totalApiRequests"`
+	CompleteApiRequests int `json:"completeApiRequests"`
+	TotalCsvElements    int `json:"totalCsvElements"`
+	CompleteCsvElements int `json:"completeCsvElements"`
 }
 
 func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid int) ([]OrchestrationsAnalysis, error) {
@@ -58,7 +68,9 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 							o.group_name AS group_name,
 							o.type AS orchestration_type,
 							o.active,
-							o.org_id
+							o.org_id,
+							ar.total_api_requests,
+							ar.total_csv_cells
 						FROM 
 							public.ai_workflow_runs AS ar 
 					  	JOIN
@@ -282,6 +294,8 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 								ca.group_name,
 								ca.orchestration_type,
 								ca.active,
+								ca.total_api_requests,
+								ca.total_csv_cells,
 							  	COALESCE(c00.max_run_cycle, 0),
 							  	COALESCE(c00.total_workflow_token_usage, 0) AS total_workflow_token_usage,
 								COALESCE(aggregated_data, '[]'::jsonb) AS aggregated_data,
@@ -298,7 +312,9 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 								ca.group_name,
 								ca.orchestration_type,
 								ca.active, c00.max_run_cycle, c00.total_workflow_token_usage,
-								aggregated_data, aggregated_eval_results, ret_aggregated_data
+								aggregated_data, aggregated_eval_results, ret_aggregated_data,
+ 								ca.total_api_requests,
+								ca.total_csv_cells
 							  ORDER BY ca.orchestration_id DESC;`
 
 	log.Debug().Interface("SelectSystemOrchestrationsWithInstructionsByGroup", q.LogHeader(Orchestrations))
@@ -313,11 +329,12 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 		var agdd []AggregatedData
 		var retd []AIWorkflowRetrievalResult
 		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationStrID, &oj.OrchestrationName, &oj.GroupName,
-			&oj.Type, &oj.Active, &oj.RunCycles, &oj.TotalWorkflowTokenUsage, &agdd, &evals, &retd)
+			&oj.Type, &oj.Active, &oj.TotalApiRequests, &oj.TotalCsvCells, &oj.RunCycles, &oj.TotalWorkflowTokenUsage, &agdd, &evals, &retd)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return nil, rowErr
 		}
+		oj.CompleteApiRequests = len(retd)
 		for i, _ := range agdd {
 			if len(agdd[i].CompletionChoices) == 4 {
 				b, berr := agdd[i].CompletionChoices.MarshalJSON()

@@ -27,27 +27,12 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
     const {csvExport, row, index, handleClick, checked, open, handleOpen } = props;
 
     const findHighestCompletion = (row: OrchestrationsAnalysis) => {
-        if (!row || !row.aggregatedRetrievalResults) {
-            return 0
+        if (row.totalApiRequests === 0) {
+            return 100
         }
-        if (row.aggregatedRetrievalResults.length === 0) {
-            return 0
-        }
-        const percentages = row.aggregatedRetrievalResults.map(data => {
-            if (!data || !data.status) {
-                return 0;  // Return 0 if data or data.status is undefined or null
-            }
-            // Extract numbers from the status string
-            const matches = data.status.match(/(\d+)\/(\d+)/);
-            if (matches && matches.length === 3) {
-                const completed = parseInt(matches[1], 10);
-                const total = parseInt(matches[2], 10);
-                return (completed / total) * 100;
-            }
-            return 0;  // Return 0 if the status format is incorrect or not present
-        });
-        // Find the highest percentage in the list
-        return Math.max(...percentages);  // You can also format this as a string if needed
+        const completed = row.completeApiRequests
+        const total = row.totalApiRequests
+        return (completed / total) * 100;
     };
 
     return (

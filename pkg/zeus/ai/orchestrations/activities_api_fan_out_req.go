@@ -88,7 +88,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 	echoReqs := getPayloads(cp)
 	wio, werr := gs3wfs(ctx, cp)
 	if werr != nil {
-		log.Err(werr).Msg("TokenOverflowReduction: failed to select workflow io")
+		log.Err(werr).Msg("FanOutApiCallRequestTask: failed to select workflow io")
 		return nil, werr
 	}
 	log.Info().Interface("inputID", cp.Wsr.InputID).Interface("wio.WorkflowStageInfo.ApiIterationCount", wio.WorkflowStageInfo.ApiIterationCount).Msg("TokenOverflowReduction: wio")

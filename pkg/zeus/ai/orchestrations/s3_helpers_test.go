@@ -15,6 +15,3 @@ func (t *ZeusWorkerTestSuite) TestSecretsSelect() {
 	t.Assert().NotEmpty(ps.S3AccessKey)
 	t.Assert().NotEmpty(ps.S3SecretKey)
 }
-
-// gs3wfsCustomTaskName
-// s3wsCustomTaskName

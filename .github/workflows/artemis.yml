@@ -11,6 +11,7 @@ on:
     branches:
       - main
       - dev
+      - add-flows
 
 permissions:
   contents: read
@@ -81,4 +82,3 @@ jobs:
           --token ${{ secrets.DEPOT_TOKEN }} \
           --provenance=false \
           -f docker/artemis/Dockerfile . --push
-

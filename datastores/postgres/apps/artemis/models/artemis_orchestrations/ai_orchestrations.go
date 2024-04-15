@@ -333,8 +333,8 @@ func UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID
 					  active = EXCLUDED.active
 				  RETURNING orchestration_id
 			), cte_ai_runs AS (
-				INSERT INTO ai_workflow_runs (workflow_run_id, orchestration_id)
-				SELECT o.orchestration_id, o.orchestration_id
+				INSERT INTO ai_workflow_runs (workflow_run_id, orchestration_id, total_api_requests, total_csv_cells)
+				SELECT o.orchestration_id, o.orchestration_id, $7, $8
 				FROM cte_orchestrations o
 				ON CONFLICT (workflow_run_id) DO NOTHING
 			) SELECT orchestration_id FROM cte_orchestrations;`
@@ -350,7 +350,23 @@ func UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID
 	if wfExec.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime == 0 || wfExec.WorkflowExecTimekeepingParams.RunWindow.UnixStartTime >= int(tn) {
 		active = true
 	}
-	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID, wfParentID, wfExec.WorkflowTemplate.WorkflowGroup, wfExec.WorkflowTemplate.WorkflowName, active, &pgtype.JSONB{Bytes: sanitizeBytesUTF8(b), Status: IsNull(b)}).Scan(&id)
+	apiReqCount := 0
+	if wfExec.WorkflowOverrides.RetrievalOverrides != nil {
+		for _, v := range wfExec.WorkflowOverrides.RetrievalOverrides {
+			plc := len(v.Payloads)
+			if plc == 0 {
+				plc = len(v.Payload)
+			}
+			apiReqCount += plc
+		}
+	}
+	cellReqCount := 0
+	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID,
+		wfParentID, wfExec.WorkflowTemplate.WorkflowGroup,
+		wfExec.WorkflowTemplate.WorkflowName, active,
+		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(b), Status: IsNull(b)},
+		apiReqCount, cellReqCount,
+	).Scan(&id)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return 0, err
 	}

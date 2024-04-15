@@ -58,6 +58,7 @@ func s3wsCustomTaskName(ctx context.Context, cp *MbChildSubProcessParams, taskNa
 		log.Err(err).Msg("s3ws: failed to hash wsr io")
 		return err
 	}
+	fmt.Println(p.FileOutPath(), "s3wsCustomTaskName")
 	b, err := json.Marshal(input)
 	if err != nil {
 		log.Err(err).Msg("s3ws: failed to upload wsr io")

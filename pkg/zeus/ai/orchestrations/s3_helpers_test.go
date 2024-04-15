@@ -16,5 +16,18 @@ func (t *ZeusWorkerTestSuite) TestSecretsSelect() {
 	t.Assert().NotEmpty(ps.S3SecretKey)
 }
 
-// gs3wfsCustomTaskName
-// s3wsCustomTaskName
+func (t *ZeusWorkerTestSuite) TestSaveWfStatus() {
+	fnv := "CsvIteratorDebug-cycle-1-chunk-0-1712604784507256000.json"
+	dbg := OpenCsvIteratorDebug(fnv)
+	wfs := WfStatus{
+		TotalApiRequests:    10,
+		CompleteApiRequests: 9,
+		TotalCsvElements:    100,
+		CompleteCsvElements: 99,
+	}
+	err := saveWfStatus(ctx, dbg.Cp, wfs)
+	t.Require().Nil(err)
+	wfrs, err := getWfStatus(ctx, dbg.Cp)
+	t.Require().Nil(err)
+	t.Require().NotNil(wfrs)
+}

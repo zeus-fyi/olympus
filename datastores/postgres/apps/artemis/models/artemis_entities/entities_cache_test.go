@@ -1,6 +1,7 @@
 package artemis_entities
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -46,6 +47,45 @@ func (s *EntitiesTestSuite) TestSelectUserEntityCache() {
 	s.Require().Len(uew.MdSlice, 1)
 	mockFakeResp := "fake"
 	s.Equal(uew.MdSlice[0].TextData, aws.String(mockFakeResp))
+}
+
+type WfStatus struct {
+	TotalApiRequests    int `json:"totalApiRequests"`
+	CompleteApiRequests int `json:"completeApiRequests"`
+
+	TotalCsvElements    int `json:"totalCsvElements"`
+	CompleteCsvElements int `json:"completeCsvElements"`
+}
+
+func (s *EntitiesTestSuite) TestEntityReporting() {
+	apps.Pg.InitPG(ctx, s.Tc.LocalDbPgconn)
+	rt := WfStatus{
+		TotalApiRequests:    100,
+		CompleteApiRequests: 1,
+		TotalCsvElements:    200,
+		CompleteCsvElements: 25,
+	}
+	b, err := json.Marshal(rt)
+	s.Require().Nil(err)
+	uew := UserEntityWrapper{
+		UserEntity: UserEntity{
+			Nickname: "test-wf-name",
+			Platform: "mb-status",
+			MdSlice: []UserEntityMetadata{
+				{
+					JsonData: b,
+					Labels: []UserEntityMetadataLabel{
+						{
+							Label: "mb:status",
+						},
+					},
+				},
+			},
+		},
+		Ou: s.Ou,
+	}
+	_, err = InsertEntitiesCaches(ctx, &uew)
+	s.Require().Nil(err)
 }
 
 func (s *EntitiesTestSuite) TestInsertUserEntityCache() {

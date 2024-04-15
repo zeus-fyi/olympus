@@ -31,6 +31,17 @@ func (z *ZeusAiPlatformActivities) CreateWsr(ctx context.Context, cp *MbChildSub
 		log.Err(err).Msg("CreateWsr: failed")
 		return nil, err
 	}
+	wfs := WfStatus{
+		TotalApiRequests:    0,
+		CompleteApiRequests: 0,
+		TotalCsvElements:    0,
+		CompleteCsvElements: 0,
+	}
+	err = saveWfStatus(ctx, cp, wfs)
+	if err != nil {
+		log.Err(err).Msg("CreateWsr: failed")
+		return nil, err
+	}
 	return cp, nil
 }
 

@@ -34,13 +34,12 @@ func (d *DeploymentsTestSuite) TestRolloutRestartDeploymentArtemis() {
 
 	i := 0
 	for {
+		time.Sleep(time.Duration(1) * time.Hour)
 		var kns = zeus_common_types.CloudCtxNs{CloudProvider: "ovh", Region: "us-west-or-1", Context: "kubernetes-admin@zeusfyi", Namespace: "artemis"}
 		dep, err := d.K.RolloutRestartDeployment(ctx, kns, "artemis", nil)
 		d.Require().Nil(err)
 		d.Require().NotEmpty(dep)
 		i++
-		tmp := i % 10
-		time.Sleep(time.Duration(tmp) * time.Minute)
 	}
 }
 

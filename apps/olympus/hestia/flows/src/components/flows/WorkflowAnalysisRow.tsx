@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Box, Collapse, TableRow, Typography} from "@mui/material";
+import {Box, Collapse, LinearProgress, TableRow, Typography} from "@mui/material";
 import TableCell from "@mui/material/TableCell";
 import IconButton from "@mui/material/IconButton";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -26,6 +26,30 @@ function convertUnixNanoToLocalTimeString(unixNano: string): string {
 export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, csvExport: boolean; open : boolean; handleOpen: any }) {
     const {csvExport, row, index, handleClick, checked, open, handleOpen } = props;
 
+    const findHighestCompletion = (row: OrchestrationsAnalysis) => {
+        if (!row || !row.aggregatedRetrievalResults) {
+            return 0
+        }
+        if (row.aggregatedRetrievalResults.length === 0) {
+            return 0
+        }
+        const percentages = row.aggregatedRetrievalResults.map(data => {
+            if (!data || !data.status) {
+                return 0;  // Return 0 if data or data.status is undefined or null
+            }
+            // Extract numbers from the status string
+            const matches = data.status.match(/(\d+)\/(\d+)/);
+            if (matches && matches.length === 3) {
+                const completed = parseInt(matches[1], 10);
+                const total = parseInt(matches[2], 10);
+                return (completed / total) * 100;
+            }
+            return 0;  // Return 0 if the status format is incorrect or not present
+        });
+        // Find the highest percentage in the list
+        return Math.max(...percentages);  // You can also format this as a string if needed
+    };
+
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
@@ -46,6 +70,9 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                     />
                 </TableCell>
                 <TableCell align="left">{convertUnixNanoToLocalTimeString(row.orchestration.orchestrationStrID)}</TableCell>
+                <TableCell style={{ fontWeight: 'normal', color: 'white', minWidth: 50}}>
+                    <LinearProgress variant="determinate" value={findHighestCompletion(row)} />
+                </TableCell>
                 <TableCell align="left">{row.orchestration.orchestrationName}</TableCell>
                 <TableCell align="left">{row.orchestration.groupName}</TableCell>
                 <TableCell align="left">{row.orchestration.type}</TableCell>

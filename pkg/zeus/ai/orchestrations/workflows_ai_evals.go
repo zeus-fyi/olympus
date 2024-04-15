@@ -1,7 +1,6 @@
 package ai_platform_service_orchestrations
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -26,10 +25,6 @@ type MbChildSubProcessParams struct {
 
 func (c *MbChildSubProcessParams) GetRunName() string {
 	return c.WfExecParams.WorkflowOverrides.WorkflowRunName
-}
-
-func (c *MbChildSubProcessParams) GetRunStatusName() string {
-	return fmt.Sprintf("%s-status", c.WfExecParams.WorkflowOverrides.WorkflowRunName)
 }
 
 const (

@@ -3,7 +3,9 @@ package zeus_v1_ai
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
@@ -83,18 +85,22 @@ func (w *WorkflowsActionsRequest) Process(c echo.Context) error {
 			if isCycleStepped {
 				resp[ri].WorkflowExecTimekeepingParams.RunCycles = w.Duration
 			}
-			//for ti, task := range resp[ri].WorkflowTasks {
-			//	tov, tok := w.TaskOverrides[task.AnalysisTaskName]
-			//	if tok {
-			//		resp[ri].WorkflowTasks[ti].AnalysisPrompt = tov.ReplacePrompt
-			//	}
-			//	if task.AggTaskID != nil && *task.AggTaskID > 0 {
-			//		tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
-			//		if tok {
-			//			resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(tov.ReplacePrompt)
-			//		}
-			//	}
-			//}
+			for ti, task := range resp[ri].WorkflowTasks {
+				tov, tok := w.TaskOverrides[task.AnalysisTaskName]
+				if tok {
+					for _, v := range tov.ReplacePrompts {
+						resp[ri].WorkflowTasks[ti].AnalysisPrompt = v
+					}
+				}
+				if task.AggTaskID != nil && *task.AggTaskID > 0 {
+					tov, tok = w.TaskOverrides[strconv.Itoa(*task.AggTaskID)]
+					if tok {
+						for _, v := range tov.ReplacePrompts {
+							resp[ri].WorkflowTasks[ti].AggPrompt = aws.String(v)
+						}
+					}
+				}
+			}
 			if w.SchemaFieldOverrides != nil {
 				resp[ri].WorkflowOverrides.SchemaFieldOverrides = w.SchemaFieldOverrides
 			}

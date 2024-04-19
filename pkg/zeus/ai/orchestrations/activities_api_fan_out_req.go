@@ -79,11 +79,14 @@ func saveRetrievalResp(ctx context.Context, mb *MbChildSubProcessParams, searchR
 }
 
 func saveRetrievalRespErr(ctx context.Context, mb *MbChildSubProcessParams) error {
+	sv := mb.Tc.WorkflowRetrievalResult.Status
+	mb.Tc.WorkflowRetrievalResult.Status = "error"
 	err := artemis_orchestrations.InsertWorkflowRetrievalResultError(ctx, mb.Tc.WorkflowRetrievalResult)
 	if err != nil {
 		log.Err(err).Interface("wr", mb.Tc.WorkflowRetrievalResult).Msg("saveRetrievalRespErr: InsertWorkflowRetrievalResult failed")
 		return err
 	}
+	mb.Tc.WorkflowRetrievalResult.Status = sv
 	return err
 }
 

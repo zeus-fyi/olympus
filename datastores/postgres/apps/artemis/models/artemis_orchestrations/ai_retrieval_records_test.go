@@ -25,7 +25,7 @@ func (s *OrchestrationsTestSuite) TestInsertWorkflowRetrievalResult() {
 	s.Require().NotZero(wr.WorkflowResultID)
 }
 
-func (s *OrchestrationsTestSuite) TestTestInsertResult() {
+func (s *OrchestrationsTestSuite) TestInsertWorkflowRetrievalResultError() {
 	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
 	window := Window{
 		UnixStartTime: 1712702165,
@@ -47,6 +47,19 @@ func (s *OrchestrationsTestSuite) TestTestInsertResult() {
 	err := InsertWorkflowRetrievalResultError(ctx, wr)
 	s.Require().NoError(err)
 	s.Require().NotZero(wr.WorkflowResultID)
+}
+
+func (s *OrchestrationsTestSuite) TestSelectRetrievalResultsIdsErrs() {
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	window := Window{
+		UnixStartTime: 1701886760,
+		UnixEndTime:   1701887760,
+	}
+	ojIds := []int{1712702165698519000}        // Example orchestration IDs
+	sourceRetIds := []int{1712533371223555000} // Example retrieval IDs
+	results, err := SelectRetrievalResultsIds(ctx, window, ojIds, sourceRetIds)
+	s.Require().NoError(err)
+	s.Require().NotEmpty(results)
 }
 
 func (s *OrchestrationsTestSuite) TestSelectRetrievalResultsIds() {

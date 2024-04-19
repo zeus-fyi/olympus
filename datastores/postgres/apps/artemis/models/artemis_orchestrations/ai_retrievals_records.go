@@ -31,7 +31,7 @@ func SelectRetrievalResultsIds(ctx context.Context, w Window, ojIds, sourceRetId
 	query := `SELECT ar.workflow_result_id, ar.workflow_result_id::text, ar.orchestration_id, ar.retrieval_id, ar.chunk_offset, ar.iteration_count,
        ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end, ar.attempts
        FROM ai_workflow_io_results ar
-       WHERE ar.skip_retrieval = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end <= $2
+       WHERE ar.skip_retrieval = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end <= $2 OR (status = 'error' AND attempts > 5)
          AND ar.retrieval_id = ANY($3) AND ar.orchestration_id = ANY($4);`
 	rows, err := apps.Pg.Query(ctx, query, w.UnixStartTime, w.UnixEndTime, pq.Array(sourceRetIds), pq.Array(ojIds))
 	if err != nil {

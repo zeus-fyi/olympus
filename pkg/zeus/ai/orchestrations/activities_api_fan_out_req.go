@@ -78,6 +78,18 @@ func saveRetrievalResp(ctx context.Context, mb *MbChildSubProcessParams, searchR
 	return nil
 }
 
+func saveRetrievalRespErr(ctx context.Context, mb *MbChildSubProcessParams) error {
+	sv := mb.Tc.WorkflowRetrievalResult.Status
+	mb.Tc.WorkflowRetrievalResult.Status = "error"
+	err := artemis_orchestrations.InsertWorkflowRetrievalResultError(ctx, mb.Tc.WorkflowRetrievalResult)
+	if err != nil {
+		log.Err(err).Interface("wr", mb.Tc.WorkflowRetrievalResult).Msg("saveRetrievalRespErr: InsertWorkflowRetrievalResult failed")
+		return err
+	}
+	mb.Tc.WorkflowRetrievalResult.Status = sv
+	return err
+}
+
 func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context, rts []iris_models.RouteInfo, cp *MbChildSubProcessParams) (*MbChildSubProcessParams, error) {
 	sm, serr := FanOutInitSetup(ctx, cp)
 	if serr != nil {
@@ -109,6 +121,11 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				rt.RouteInfo.Payload = ple
 				_, err := na.ApiCallRequestTask(ctx, rt, cp)
 				if err != nil {
+					rerrr := saveRetrievalRespErr(ctx, cp)
+					if rerrr != nil {
+						log.Err(rerrr).Interface("pi", pi).Msg("FanOutApiCallRequestTask: saveRetrievalRespErr failed")
+						return nil, rerrr
+					}
 					log.Err(err).Interface("pi", pi).Msg("FanOutApiCallRequestTask: failed")
 					return nil, err
 				}

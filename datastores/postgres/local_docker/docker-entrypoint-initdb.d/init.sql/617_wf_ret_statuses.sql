@@ -5,6 +5,7 @@ CREATE TABLE public.ai_workflow_io_results(
     running_cycle_number int8 NOT NULL DEFAULT 1,
     iteration_count int8 NOT NULL DEFAULT 0,
     chunk_offset int8 NOT NULL DEFAULT 0,
+    attempts int8 NOT NULL DEFAULT 0,
     search_window_unix_start int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
     search_window_unix_end int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
     skip_retrieval bool NOT NULL DEFAULT false,
@@ -22,3 +23,4 @@ CREATE INDEX wf_io_metadata_idx ON public.ai_workflow_io_results USING GIN (meta
 
 ALTER TABLE public.ai_workflow_io_results
     ADD CONSTRAINT unique_combination_wf_io UNIQUE (orchestration_id, retrieval_id, running_cycle_number, iteration_count, chunk_offset);
+

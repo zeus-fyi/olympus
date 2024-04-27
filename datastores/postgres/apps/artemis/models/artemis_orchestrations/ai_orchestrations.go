@@ -23,6 +23,128 @@ type WorkflowExecParams struct {
 	WorkflowTasks                 []WorkflowTemplateData        `json:"workflowTasks"`
 	WorkflowOverrides             WorkflowOverrides             `json:"workflowOverrides"`
 }
+type WorkflowOverrides1 struct {
+	WorkflowRunName      string                            `json:"workflowRunName"`
+	IsUsingFlows         bool                              `json:"isUsingFlows"`
+	TaskPromptOverrides  TaskOverrides                     `json:"taskPromptOverrides"`
+	SchemaFieldOverrides SchemaOverrides                   `json:"schemaFieldOverrides"`
+	RetrievalOverrides   RetrievalOverrides                `json:"retrievalOverride"`
+	WorkflowEntityRefs   []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
+	WorkflowEntities     []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
+}
+
+func (w *WorkflowExecParams) MergeWorkflowOverrides(other WorkflowOverrides) {
+	w.WorkflowOverrides.WorkflowEntityRefs = append(w.WorkflowOverrides.WorkflowEntityRefs, other.WorkflowEntityRefs...)
+	w.WorkflowOverrides.WorkflowEntities = append(w.WorkflowOverrides.WorkflowEntities, other.WorkflowEntities...)
+	if w.WorkflowOverrides.RetrievalOverrides == nil {
+		w.WorkflowOverrides.RetrievalOverrides = make(map[string]RetrievalOverride)
+	}
+	if w.WorkflowOverrides.TaskPromptOverrides == nil {
+		w.WorkflowOverrides.TaskPromptOverrides = make(map[string]TaskOverride)
+	}
+	for k, v := range other.RetrievalOverrides {
+		w.WorkflowOverrides.RetrievalOverrides[k] = v
+	}
+
+	for k, v := range other.TaskPromptOverrides {
+		w.WorkflowOverrides.TaskPromptOverrides[k] = v
+	}
+}
+
+func (w *WorkflowExecParams) MergeCycleCountTaskRelative(other CycleCountTaskRelative) {
+	if w.CycleCountTaskRelative.AggNormalizedCycleCounts == nil {
+		w.CycleCountTaskRelative.AggNormalizedCycleCounts = make(map[int]int)
+	}
+	for k, v := range other.AggNormalizedCycleCounts {
+		w.CycleCountTaskRelative.AggNormalizedCycleCounts[k] = v
+	}
+
+	if w.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts == nil {
+		w.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts = make(map[int]map[int]int)
+	}
+	for k, v := range other.AnalysisEvalNormalizedCycleCounts {
+		if w.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts[k] == nil {
+			w.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts[k] = make(map[int]int)
+		}
+		for key, value := range v {
+			w.CycleCountTaskRelative.AnalysisEvalNormalizedCycleCounts[k][key] = value
+		}
+	}
+
+	if w.CycleCountTaskRelative.AggEvalNormalizedCycleCounts == nil {
+		w.CycleCountTaskRelative.AggEvalNormalizedCycleCounts = make(map[int]map[int]int)
+	}
+	for k, v := range other.AggEvalNormalizedCycleCounts {
+		if w.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[k] == nil {
+			w.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[k] = make(map[int]int)
+		}
+		for key, value := range v {
+			w.CycleCountTaskRelative.AggEvalNormalizedCycleCounts[k][key] = value
+		}
+	}
+
+	if w.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts == nil {
+		w.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts = make(map[int]map[int]map[int]int)
+	}
+	for k, v := range other.AggAnalysisEvalNormalizedCycleCounts {
+		if w.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[k] == nil {
+			w.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[k] = make(map[int]map[int]int)
+		}
+		for key, nestedMap := range v {
+			if w.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[k][key] == nil {
+				w.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[k][key] = make(map[int]int)
+			}
+			for innerKey, value := range nestedMap {
+				w.CycleCountTaskRelative.AggAnalysisEvalNormalizedCycleCounts[k][key][innerKey] = value
+			}
+		}
+	}
+}
+
+func (w *WorkflowExecParams) MergeWorkflowTaskRelationships(wfr WorkflowTaskRelationships) {
+	if w.WorkflowTaskRelationships.AnalysisTasks == nil {
+		w.WorkflowTaskRelationships.AnalysisTasks = make(map[int]AnalysisTaskDB)
+	}
+	for k, v := range wfr.AnalysisTasks {
+		w.WorkflowTaskRelationships.AnalysisTasks[k] = v
+	}
+
+	if w.WorkflowTaskRelationships.AggregateAnalysis == nil {
+		w.WorkflowTaskRelationships.AggregateAnalysis = make(map[int]map[int]bool)
+	}
+	for k, v := range wfr.AggregateAnalysis {
+		if w.WorkflowTaskRelationships.AggregateAnalysis[k] == nil {
+			w.WorkflowTaskRelationships.AggregateAnalysis[k] = make(map[int]bool)
+		}
+		for key, value := range v {
+			w.WorkflowTaskRelationships.AggregateAnalysis[k][key] = value
+		}
+	}
+
+	if w.WorkflowTaskRelationships.AnalysisRetrievals == nil {
+		w.WorkflowTaskRelationships.AnalysisRetrievals = make(map[int]map[int]bool)
+	}
+	for k, v := range wfr.AnalysisRetrievals {
+		if w.WorkflowTaskRelationships.AnalysisRetrievals[k] == nil {
+			w.WorkflowTaskRelationships.AnalysisRetrievals[k] = make(map[int]bool)
+		}
+		for key, value := range v {
+			w.WorkflowTaskRelationships.AnalysisRetrievals[k][key] = value
+		}
+	}
+
+	if w.WorkflowTaskRelationships.AggAnalysisTasks == nil {
+		w.WorkflowTaskRelationships.AggAnalysisTasks = make(map[int]map[int]AggTaskDb)
+	}
+	for k, v := range wfr.AggAnalysisTasks {
+		if w.WorkflowTaskRelationships.AggAnalysisTasks[k] == nil {
+			w.WorkflowTaskRelationships.AggAnalysisTasks[k] = make(map[int]AggTaskDb)
+		}
+		for key, value := range v {
+			w.WorkflowTaskRelationships.AggAnalysisTasks[k][key] = value
+		}
+	}
+}
 
 type WorkflowOverrides struct {
 	WorkflowRunName      string                            `json:"workflowRunName"`

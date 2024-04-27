@@ -23,7 +23,8 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 		log.Err(gerr).Msg("CsvIterator: gws failed")
 		return gerr
 	}
-	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID})
+	log.Info().Interface("mb.Tc.TaskOffset", mb.Tc.TaskOffset).Msg("mb.Tc.TaskOffset)")
+	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID}, mb.Tc.TaskOffset)
 	if serr != nil {
 		log.Err(serr).Msg("CsvIterator: SelectAiWorkflowAnalysisResultsIds failed")
 		return serr
@@ -101,6 +102,7 @@ func saveCsvResp(ctx context.Context, colName string, chunk, offsetInd int, mb *
 		log.Err(err).Msg("ZeusAiPlatformActivities: saveCsvResp RecordCompletionResponse: failed")
 	}
 	wr.ResponseID = rid
+	wr.TaskOffset = mb.Tc.TaskOffset
 	err = artemis_orchestrations.InsertAiWorkflowAnalysisResult(ctx, wr)
 	if err != nil {
 		log.Err(err).Interface("wr", wr).Interface("wr", wr).Msg("saveCsvResp: failed")

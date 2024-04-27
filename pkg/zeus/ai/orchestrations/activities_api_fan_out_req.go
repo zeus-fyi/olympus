@@ -29,6 +29,7 @@ func FanOutInitSetup(ctx context.Context, mb *MbChildSubProcessParams) (map[int]
 		log.Err(rerr).Interface("rev", rev).Msg("FanOutApiCallRequestTask: SelectRetrievalTask failed")
 		return nil, rerr
 	}
+	log.Info().Interface("*mb.Tc.Retrieval.RetrievalID", *mb.Tc.Retrieval.RetrievalID).Msg("*mb.Tc.Retrieval.RetrievalID")
 	sv, serr := artemis_orchestrations.SelectRetrievalResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{*mb.Tc.Retrieval.RetrievalID})
 	if serr != nil {
 		log.Err(serr).Msg("FanOutApiCallRequestTask: SelectRetrievalResultsIds failed")

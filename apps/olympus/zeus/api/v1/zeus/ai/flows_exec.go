@@ -71,6 +71,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
+		var wfExecParams artemis_orchestrations.WorkflowExecParams
 		for ri, _ := range resp {
 			wfName := resp[ri].WorkflowTemplate.WorkflowName
 			if ve, wok := w.WorkflowEntitiesOverrides[wfName]; wok {
@@ -112,11 +113,20 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			resp[ri].WorkflowExecTimekeepingParams.IsStrictTimeWindow = w.IsStrictTimeWindow
 			resp[ri].WorkflowOverrides.IsUsingFlows = true
 			resp[ri].WorkflowOverrides.WorkflowEntityRefs = w.WorkflowEntityRefs
-			rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, resp[ri])
-			if err != nil {
-				log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
-				return c.JSON(http.StatusInternalServerError, nil)
-			}
+			wfExecParams.WorkflowExecTimekeepingParams = resp[ri].WorkflowExecTimekeepingParams
+			wfExecParams.WorkflowTasks = append(wfExecParams.WorkflowTasks, resp[ri].WorkflowTasks...)
+			wfExecParams.MergeWorkflowTaskRelationships(resp[ri].WorkflowTaskRelationships)
+			wfExecParams.MergeCycleCountTaskRelative(resp[ri].CycleCountTaskRelative)
+			wfExecParams.MergeWorkflowOverrides(resp[ri].WorkflowOverrides)
+		}
+		wfExecParams.WorkflowOverrides.IsUsingFlows = true
+		wfExecParams.WorkflowTemplate.WorkflowName = "mixed"
+		wfExecParams.WorkflowTemplate.WorkflowGroup = "mixed-group"
+		fmt.Println(wfExecParams)
+		rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, wfExecParams)
+		if err != nil {
+			log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
+			return c.JSON(http.StatusInternalServerError, nil)
 		}
 
 	case "stop":

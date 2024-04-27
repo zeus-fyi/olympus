@@ -36,6 +36,7 @@ type TaskContext struct {
 	QueryParams                        []string                                                     `json:"queryParams,omitempty"`
 	TextResponse                       string                                                       `json:"textResponse,omitempty"`
 	ChunkIterator                      int                                                          `json:"chunkIterator"`
+	TaskOffset                         int                                                          `json:"taskOffset"`
 	WorkflowRetrievalResult            *artemis_orchestrations.AIWorkflowRetrievalResult            `json:"aiWorkflowRetrievalResult,omitempty"`
 	RegexSearchResults                 []hera_search.SearchResult                                   `json:"searchResults,omitempty"`
 	Retrieval                          artemis_orchestrations.RetrievalItem                         `json:"retrieval,omitempty"`

@@ -11,7 +11,7 @@ func (t *ZeusWorkerTestSuite) TestCsvIterator() {
 	dbg := OpenCsvIteratorDebug(fnv)
 	na := NewZeusAiPlatformActivities()
 	mb := dbg.Cp
-	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID})
+	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID}, 0)
 	t.Require().Nil(serr)
 	fmt.Println(sv)
 	sm := make(map[int]map[int]bool)
@@ -28,11 +28,11 @@ func (t *ZeusWorkerTestSuite) TestCsvIterator() {
 }
 
 func (t *ZeusWorkerTestSuite) TestCsvIteratorReports() {
-	fnv := "CsvIteratorDebug-cycle-1-chunk-0-1712604784507256000.json"
+	fnv := "CsvIteratorDebug-cycle-1-chunk-0-1714187615313105000.json"
 	dbg := OpenCsvIteratorDebug(fnv)
 	na := NewZeusAiPlatformActivities()
 	mb := dbg.Cp
-	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID})
+	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID}, 0)
 	t.Require().Nil(serr)
 	fmt.Println(sv)
 	sm := make(map[int]map[int]bool)
@@ -55,6 +55,6 @@ func (t *ZeusWorkerTestSuite) TestC() {
 		{"entity": "https://www.aol.com", "prompt1": "try me"},
 		{"entity": "https://www.aol.com", "prompt2": "Noticed test."},
 	}
-	res := convEntityToCsvCol("Website", plms)
+	res := convEntityToCsvCol("Website", plms, 0)
 	fmt.Println(res)
 }

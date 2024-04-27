@@ -24,6 +24,7 @@ type AIWorkflowAnalysisResult struct {
 	SearchWindowUnixStart int             `json:"searchWindowUnixStart"`
 	SearchWindowUnixEnd   int             `json:"searchWindowUnixEnd"`
 	SkipAnalysis          bool            `json:"skipAnalysis"`
+	TaskOffset            int             `json:"taskOffset"`
 	Metadata              json.RawMessage `json:"metadata,omitempty"`
 	CompletionChoices     json.RawMessage `json:"completionChoices,omitempty"`
 }
@@ -31,10 +32,11 @@ type AIWorkflowAnalysisResult struct {
 func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisResult) error {
 	q := sql_query_templates.QueryParams{}
 	q.RawQuery = `INSERT INTO ai_workflow_analysis_results(orchestration_id, response_id, source_task_id, chunk_offset, iteration_count, 
-                                         running_cycle_number, search_window_unix_start, search_window_unix_end, skip_analysis, metadata)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                                         running_cycle_number, search_window_unix_start, search_window_unix_end, skip_analysis, metadata, task_offset)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                   ON CONFLICT (orchestration_id, response_id, source_task_id, running_cycle_number, iteration_count, chunk_offset)
                   DO UPDATE SET 
+                      task_offset = EXCLUDED.task_offset,
                       orchestration_id = EXCLUDED.orchestration_id,
                       response_id = EXCLUDED.response_id,
                       source_task_id = EXCLUDED.source_task_id,
@@ -48,7 +50,7 @@ func InsertAiWorkflowAnalysisResult(ctx context.Context, wr *AIWorkflowAnalysisR
 	err := apps.Pg.QueryRowWArgs(ctx, q.RawQuery, wr.OrchestrationID, wr.ResponseID, wr.SourceTaskID,
 		wr.ChunkOffset, wr.IterationCount, wr.RunningCycleNumber,
 		wr.SearchWindowUnixStart, wr.SearchWindowUnixEnd, wr.SkipAnalysis,
-		md).Scan(&wr.WorkflowResultID)
+		md, wr.TaskOffset).Scan(&wr.WorkflowResultID)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader("AIWorkflowAnalysisResults")); returnErr != nil {
 		log.Err(returnErr).Interface("wr", wr).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
 		return err
@@ -60,7 +62,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 	q := sql_query_templates.QueryParams{}
 	// Then, select rows using the search window and source task IDs
 	q.RawQuery = `SELECT ar.workflow_result_id, ar.orchestration_id, ar.response_id, ar.source_task_id,ar.chunk_offset, ar.iteration_count,
-       					 ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end, ar.metadata, cr.completion_choices
+       					 ar.running_cycle_number, ar.search_window_unix_start, ar.search_window_unix_end, ar.metadata, cr.completion_choices, ar.task_offset
                   FROM ai_workflow_analysis_results ar
                   JOIN completion_responses cr ON cr.response_id = ar.response_id	
                   WHERE ar.skip_analysis = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end <= $2
@@ -78,7 +80,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 		var result AIWorkflowAnalysisResult
 		err = rows.Scan(&result.WorkflowResultID, &result.OrchestrationID, &result.ResponseID, &result.SourceTaskID,
 			&result.ChunkOffset, &result.IterationCount, &result.RunningCycleNumber,
-			&result.SearchWindowUnixStart, &result.SearchWindowUnixEnd, &result.Metadata, &result.CompletionChoices)
+			&result.SearchWindowUnixStart, &result.SearchWindowUnixEnd, &result.Metadata, &result.CompletionChoices, &result.TaskOffset)
 		if err != nil {
 			log.Err(err).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
 			return nil, err
@@ -89,7 +91,7 @@ func SelectAiWorkflowAnalysisResults(ctx context.Context, w Window, ojIds, sourc
 	return results, nil
 }
 
-func SelectAiWorkflowAnalysisResultsIds(ctx context.Context, w Window, ojIds, sourceTaskIds []int) ([]AIWorkflowAnalysisResult, error) {
+func SelectAiWorkflowAnalysisResultsIds(ctx context.Context, w Window, ojIds, sourceTaskIds []int, to int) ([]AIWorkflowAnalysisResult, error) {
 	q := sql_query_templates.QueryParams{}
 	// Then, select rows using the search window and source task IDs
 	q.RawQuery = `SELECT ar.workflow_result_id, ar.orchestration_id, ar.response_id, ar.source_task_id,ar.chunk_offset, ar.iteration_count,
@@ -97,9 +99,9 @@ func SelectAiWorkflowAnalysisResultsIds(ctx context.Context, w Window, ojIds, so
                   FROM ai_workflow_analysis_results ar
                   JOIN completion_responses cr ON cr.response_id = ar.response_id	
                   WHERE ar.skip_analysis = false AND ar.search_window_unix_start >= $1 AND ar.search_window_unix_end <= $2
-                    AND ar.source_task_id = ANY($3) AND ar.orchestration_id = ANY($4);`
+                    AND ar.source_task_id = ANY($3) AND ar.orchestration_id = ANY($4) AND ar.chunk_offset = $5 AND ar.task_offset = $5;`
 
-	rows, err := apps.Pg.Query(ctx, q.RawQuery, w.UnixStartTime, w.UnixEndTime, pq.Array(sourceTaskIds), pq.Array(ojIds))
+	rows, err := apps.Pg.Query(ctx, q.RawQuery, w.UnixStartTime, w.UnixEndTime, pq.Array(sourceTaskIds), pq.Array(ojIds), to)
 	if err != nil {
 		log.Err(err).Msg(q.LogHeader("AIWorkflowAnalysisResults"))
 		return nil, err

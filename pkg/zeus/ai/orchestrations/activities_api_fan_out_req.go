@@ -123,16 +123,17 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				rt.RouteInfo.Payload = ple
 				_, err := na.ApiCallRequestTask(ctx, rt, cp)
 				if err != nil {
-					rerrr := saveRetrievalRespErr(ctx, cp)
-					if rerrr != nil {
-						log.Err(rerrr).Interface("pi", pi).Msg("FanOutApiCallRequestTask: saveRetrievalRespErr failed")
-						return nil, rerrr
-					}
-					if cp.Tc.WorkflowRetrievalResult.Attempts == 0 {
-						cp.Tc.WorkflowRetrievalResult.Attempts = 1
+					if cp.Tc.WorkflowRetrievalResult.Attempts < 7 {
+						cp.Tc.WorkflowRetrievalResult.Attempts += 1
+						time.Sleep(time.Duration(cp.Tc.WorkflowRetrievalResult.Attempts) * time.Minute)
+					} else {
+						rerrr := saveRetrievalRespErr(ctx, cp)
+						if rerrr != nil {
+							log.Err(rerrr).Interface("pi", pi).Msg("FanOutApiCallRequestTask: saveRetrievalRespErr failed")
+							return nil, rerrr
+						}
 					}
 					log.Err(err).Interface("pi", pi).Interface("cp.Tc.WorkflowRetrievalResult.Attempts", cp.Tc.WorkflowRetrievalResult.Attempts).Msg("FanOutApiCallRequestTask: failed")
-					time.Sleep(time.Duration(cp.Tc.WorkflowRetrievalResult.Attempts) * time.Minute)
 					return nil, err
 				}
 				activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%d", pi))

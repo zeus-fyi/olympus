@@ -139,6 +139,8 @@ func validPromptContent(ctx context.Context, in string) bool {
 	return true
 }
 
+const KevinFlowsOrgID = 1710298581127603000
+
 func (z *ZeusAiPlatformActivities) CsvAnalysisTask(ctx context.Context, ou org_users.OrgUser, taskInst artemis_orchestrations.WorkflowTemplateData, content string, isFlow bool) (*ChatCompletionQueryResponse, error) {
 	cr := openai.ChatCompletionRequest{
 		Model:       taskInst.AnalysisModel,
@@ -165,6 +167,12 @@ func (z *ZeusAiPlatformActivities) CsvAnalysisTask(ctx context.Context, ou org_u
 	prompt["prompt"] = taskInst.AnalysisPrompt
 	prompt["content"] = content
 	var oa hera_openai.OpenAI
+
+	if isFlow {
+		ou.OrgID = KevinFlowsOrgID
+		ou.UserID = KevinFlowsOrgID
+	}
+
 	ps, err := GetMockingBirdSecrets(ctx, ou)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {

@@ -104,10 +104,10 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 	to := pr.OrgID
 	tou := pr.UserID
-	if pr.IsFlowRequest && flowKeys[pr.SecretNameRef] {
-		to = flowsSecretsOrgID
-		tou = flowsSecretsOrgID
-	}
+	//if pr.IsFlowRequest && flowKeys[pr.SecretNameRef] {
+	//	to = flowsSecretsOrgID
+	//	tou = flowsSecretsOrgID
+	//}
 	var bearer string
 	var user, pw string
 	if pr.SecretNameRef != "" {

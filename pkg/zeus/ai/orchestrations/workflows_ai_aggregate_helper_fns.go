@@ -11,6 +11,7 @@ import (
 
 type InputDataAnalysisToAgg struct {
 	CsvResponse                 map[string]interface{}         `json:"csvResponse,omitempty"`
+	TaskOffset                  int                            `json:"taskOffset"`
 	TextInput                   *string                        `json:"textInput,omitempty"`
 	ChatCompletionQueryResponse *ChatCompletionQueryResponse   `json:"chatCompletionQueryResponse,omitempty"`
 	SearchResultGroup           *hera_search.SearchResultGroup `json:"baseSearchResultsGroup,omitempty"`

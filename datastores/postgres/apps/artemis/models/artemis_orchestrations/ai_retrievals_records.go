@@ -51,7 +51,19 @@ func SelectRetrievalResultsIds(ctx context.Context, w Window, ojIds, sourceRetId
 		}
 		results = append(results, result)
 	}
-	return results, nil
+
+	m := make(map[int]bool)
+	for _, v := range sourceRetIds {
+		m[v] = true
+	}
+	var re []AIWorkflowRetrievalResult
+	for _, v := range results {
+		if _, ok := m[v.RetrievalID]; !ok {
+			continue
+		}
+		re = append(re, v)
+	}
+	return re, nil
 }
 
 func InsertWorkflowRetrievalResult(ctx context.Context, wr *AIWorkflowRetrievalResult) error {

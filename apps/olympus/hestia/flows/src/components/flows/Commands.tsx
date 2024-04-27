@@ -149,11 +149,11 @@ export function Commands(props: any) {
 
     const getTabName = (selectedTab: number): string => {
         if (selectedTab === 0) {
-            return 'Google Search ';
+            return 'Website ';
         } else if (selectedTab === 1) {
             return 'LinkedIn ';
         } else if (selectedTab === 2) {
-            return 'Website ';
+            return ' ';
         } else {
             return '';
         }
@@ -174,13 +174,13 @@ export function Commands(props: any) {
             <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large', fontWeight: 'thin', marginRight: '15px', color: '#151C2F' }}>
                 <span style={{ fontSize: 'large', fontWeight: 'thin', color: '#151C2F' }}>{getTabName(selectedMainTab)}</span> Agent Tasking Commands
             </Typography>
-                {selectedMainTab === 0 && (
-                <MbTaskCmdPrompt language={"plaintext"} code={cmds.googleSearch} onChange={handleChangeGoogleSearchPrompt} height={"200px"} width={"1200px"}/>
-            )}
+            {/*    {selectedMainTab === 2 && (*/}
+            {/*    <MbTaskCmdPrompt language={"plaintext"} code={cmds.googleSearch} onChange={handleChangeGoogleSearchPrompt} height={"200px"} width={"1200px"}/>*/}
+            {/*)}*/}
             {selectedMainTab === 1 && (
                 <MbTaskCmdPrompt language={"plaintext"} code={cmds.linkedIn} onChange={handleChangeLinkedInPrompt} height={"200px"} width={"1200px"}/>
             )}
-            {selectedMainTab === 2 && (
+            {selectedMainTab === 0 && (
                 <MbTaskCmdPrompt language={"plaintext"} code={cmds.websiteScrape} onChange={handleChangeWebScrapePrompt} height={"200px"} width={"1200px"}/>
             )}
             <Box mt={2} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'right' }}>
@@ -216,9 +216,9 @@ export function Commands(props: any) {
             </Card>
             <Box sx={{ mb: 2, mt: 2, ml: 0, mr:0  }}>
                 <Tabs value={selectedMainTab} onChange={handleMainTabChange} aria-label="basic tabs">
-                    <Tab label="Google Search"/>
-                    <Tab label="LinkedIn" />
                     <Tab label="Website" />
+                    <Tab label="LinkedIn" />
+                    {/*<Tab label="Google Search"/>*/}
                 </Tabs>
             </Box>
         </div>

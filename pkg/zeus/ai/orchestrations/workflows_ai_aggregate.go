@@ -23,7 +23,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 	ao := getDefaultRetryPolicy()
 	i := runCycle
 
-	for _, aggInst := range wfExecParams.WorkflowTasks {
+	for ti, aggInst := range wfExecParams.WorkflowTasks {
 		log.Info().Interface("runCycle", runCycle).Msg("aggregation: runCycle")
 		if isInvalidAggInst(aggInst, md, wfExecParams) {
 			continue
@@ -71,6 +71,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				aofoa := ao
 				aofoa.HeartbeatTimeout = 5 * time.Minute
 				aggCompCtx := workflow.WithActivityOptions(ctx, aofoa)
+				cp.Tc.TaskOffset = ti
 				err = workflow.ExecuteActivity(aggCompCtx, z.CsvIterator, cp).Get(aggCompCtx, nil)
 				if err != nil {
 					logger.Error("failed to save agg csv response", "Error", err)

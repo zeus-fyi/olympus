@@ -23,7 +23,8 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 	md := artemis_orchestrations.MapDependencies(wfExecParams.WorkflowTasks)
 	i := runCycle
 	log.Info().Interface("runCycle", runCycle).Msg("analysis: runCycle")
-	for _, analysisInst := range wfExecParams.WorkflowTasks {
+	for ti, analysisInst := range wfExecParams.WorkflowTasks {
+		log.Info().Interface("taskIndex", ti).Msg("task number")
 		// if agg task id; meant only for agg tasks; since agg task can contain original related analysis task embedded
 		if analysisInst.AggTaskID != nil {
 			continue
@@ -55,6 +56,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				tmpOu.OrgID = FlowsOrgID
 			}
 			var rets []artemis_orchestrations.RetrievalItem
+			log.Info().Interface("analysisInst.RetrievalID", analysisInst.RetrievalID).Msg("analysisInst.RetrievalID")
 			chunkedTaskCtx := workflow.WithActivityOptions(ctx, ao)
 			err = workflow.ExecuteActivity(chunkedTaskCtx, z.SelectRetrievalTask, tmpOu, *analysisInst.RetrievalID).Get(chunkedTaskCtx, &rets)
 			if err != nil {
@@ -67,7 +69,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			cp.Tc.Retrieval = rets[0]
 			aoRet := getRetrievalWfRetryPolicy()
 			childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{
-				WorkflowID:         oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle),
+				WorkflowID:         oj.OrchestrationName + "-analysis-ret-cycle-" + strconv.Itoa(runCycle) + "-" + strconv.Itoa(ti),
 				WorkflowRunTimeout: ao.ScheduleToCloseTimeout,
 				RetryPolicy:        aoRet.RetryPolicy,
 			}
@@ -113,6 +115,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				aofoa := ao
 				aofoa.HeartbeatTimeout = 5 * time.Minute
 				analysisCsvCompCtx := workflow.WithActivityOptions(ctx, aofoa)
+				cp.Tc.TaskOffset = ti
 				err = workflow.ExecuteActivity(analysisCsvCompCtx, z.CsvIterator, cp).Get(analysisCsvCompCtx, nil)
 				if err != nil {
 					logger.Error("failed to save analysis csv response", "Error", err)

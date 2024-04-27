@@ -14,6 +14,11 @@ import (
 
 func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp *MbChildSubProcessParams) error {
 	var sourceTaskIds []int
+
+	// for dbg
+	//gd := CsvIteratorDebug{cp}
+	//gd.Save()
+
 	for _, wfi := range cp.WfExecParams.WorkflowTasks {
 		if wfi.AnalysisTaskID > 0 && wfi.AggTaskID == nil {
 			sourceTaskIds = append(sourceTaskIds, wfi.AnalysisTaskID)
@@ -64,6 +69,7 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 			log.Err(jerr).Msg("GenerateCycleReports: failed")
 			continue
 		}
+		tmp.TaskOffset = r.TaskOffset
 		resp = append(resp, tmp)
 	}
 	var payloadMaps []map[string]interface{}
@@ -71,6 +77,12 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 	var jsr []artemis_orchestrations.JsonSchemaDefinition
 	for _, v := range resp {
 		if v.CsvResponse != nil {
+			if v.TaskOffset > 0 {
+				for k, vi := range v.CsvResponse {
+					delete(v.CsvResponse, k)
+					v.CsvResponse[fmt.Sprintf("%s_%d", k, v.TaskOffset)] = vi
+				}
+			}
 			payloadMaps = append(payloadMaps, v.CsvResponse)
 		} else if v.ChatCompletionQueryResponse != nil {
 			if v.ChatCompletionQueryResponse.JsonResponseResults != nil {
@@ -104,7 +116,7 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 
 	for i, source := range gens {
 		//tmp := source.MdSlice
-		for _, mi := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
+		for mind, mi := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
 			for _, minv := range mi.MdSlice {
 				if minv.JsonData != nil && string(minv.JsonData) != "null" {
 					var cme utils_csv.CsvMergeEntity
@@ -116,8 +128,8 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 					// {"MergeColName":"Email","Rows":{"alex@zeus.fyi":[0,2],"leevar@gmail.com":[1,3]}}
 					cnT := cme.MergeColName
 					log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
-					cv := convEntityToCsvCol(cnT, payloadMaps)
-					//fmt.Println(cv)
+					cv := convEntityToCsvCol(cnT, payloadMaps, mind)
+					fmt.Println(mind, cv)
 					merged, merr := utils_csv.MergeCsvEntity(source, cv, cme)
 					if merr != nil {
 						log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
@@ -140,17 +152,17 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 							},
 						},
 					}
-					rna := cp.GetRunName()
-					if i > 0 {
-						rna = fmt.Sprintf("%s_%d", rn, i)
-					}
-					_, err = S3WfRunImports(ctx, cp.Ou, rna, &source)
-					if err != nil {
-						log.Err(err).Msg("S3WfRunImports: failed to save merged result")
-						return err
-					}
 				}
 			}
+		}
+		rna := cp.GetRunName()
+		if i > 0 {
+			rna = fmt.Sprintf("%s_%d", rn, i)
+		}
+		_, err = S3WfRunImports(ctx, cp.Ou, rna, &source)
+		if err != nil {
+			log.Err(err).Msg("S3WfRunImports: failed to save merged result")
+			return err
 		}
 		//fmt.Println(source)
 		//fmt.Println(tmp)
@@ -158,11 +170,15 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 	return nil
 }
 
-func convEntityToCsvCol(cn string, plms []map[string]interface{}) []map[string]interface{} {
+func convEntityToCsvCol(cn string, plms []map[string]interface{}, offset int) []map[string]interface{} {
 	//m := make(map[string]interface{})
+	ens := "entity"
+	if offset > 0 {
+		ens = fmt.Sprintf("%s_%d", ens, offset)
+	}
 	for i, pl := range plms {
-		if v, ok := pl["entity"]; ok {
-			delete(pl, "entity")
+		if v, ok := pl[ens]; ok {
+			delete(pl, ens)
 			pl[cn] = v
 			plms[i] = pl
 		}
@@ -198,7 +214,6 @@ func mergeMaps(plms []map[string]interface{}, uniqueKey string) []map[string]int
 	for _, v := range combinedEntries {
 		result = append(result, v)
 	}
-
 	return result
 }
 

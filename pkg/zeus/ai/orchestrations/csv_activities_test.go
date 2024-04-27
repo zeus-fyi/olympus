@@ -19,12 +19,12 @@ func (t *ZeusWorkerTestSuite) TestWfCsv() {
 }
 
 func (t *ZeusWorkerTestSuite) TestExportWfCsv() {
-	wfName := "test-wf"
+	wfName := "mixed-f414aa64-6530"
 	ue := artemis_entities.UserEntity{
 		Platform: "csv-exports",
 		Nickname: wfName,
 	}
-	ev, err := S3WfRunExport(ctx, t.Ou, "test-wf", &ue)
+	ev, err := S3WfRunExport(ctx, t.Ou, wfName, &ue)
 	t.Require().Nil(err)
 	t.Require().NotEmpty(ev)
 }

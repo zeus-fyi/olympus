@@ -6,11 +6,14 @@ CREATE TABLE public.ai_workflow_analysis_results(
     running_cycle_number int8 NOT NULL DEFAULT 1,
     iteration_count int8 NOT NULL DEFAULT 1,
     chunk_offset int8 NOT NULL DEFAULT 0,
+    task_offset int8 NOT NULL DEFAULT 0,
     search_window_unix_start int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
     search_window_unix_end int8 NOT NULL CHECK (search_window_unix_start < search_window_unix_end),
     skip_analysis bool NOT NULL DEFAULT false,
     metadata jsonb
 );
+
+CREATE INDEX wf_analysis_to_id_idx ON public.ai_workflow_analysis_results("task_offset");
 CREATE INDEX wf_analysis_skip_idx ON public.ai_workflow_analysis_results("skip_analysis");
 CREATE INDEX wf_analysis_orchestrations_id_idx ON public.ai_workflow_analysis_results("orchestration_id");
 CREATE INDEX wf_analysis_resp_id_idx ON public.ai_workflow_analysis_results("response_id");

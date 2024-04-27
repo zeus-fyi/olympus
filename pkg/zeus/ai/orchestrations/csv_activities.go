@@ -61,7 +61,7 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 						}
 						cnT := cme.MergeColName
 						log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
-						cv := convEntityToCsvCol(cnT, payloadMaps)
+						cv := convEntityToCsvCol(cnT, payloadMaps, 0)
 						fmt.Println(cv)
 						merged, merr := utils_csv.MergeCsvEntity(source, cv, cme)
 						if merr != nil {

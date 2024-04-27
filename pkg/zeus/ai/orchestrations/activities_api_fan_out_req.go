@@ -125,7 +125,7 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 				if err != nil {
 					if cp.Tc.WorkflowRetrievalResult.Attempts < 7 {
 						cp.Tc.WorkflowRetrievalResult.Attempts += 1
-						time.Sleep(time.Duration(cp.Tc.WorkflowRetrievalResult.Attempts) * time.Minute)
+						time.Sleep(time.Duration(cp.Tc.WorkflowRetrievalResult.Attempts) * time.Second * 30)
 					} else {
 						rerrr := saveRetrievalRespErr(ctx, cp)
 						if rerrr != nil {

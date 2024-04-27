@@ -167,12 +167,10 @@ func (z *ZeusAiPlatformActivities) CsvAnalysisTask(ctx context.Context, ou org_u
 	prompt["prompt"] = taskInst.AnalysisPrompt
 	prompt["content"] = content
 	var oa hera_openai.OpenAI
-
 	if isFlow {
 		ou.OrgID = KevinFlowsOrgID
 		ou.UserID = KevinFlowsOrgID
 	}
-
 	ps, err := GetMockingBirdSecrets(ctx, ou)
 	if err != nil || ps == nil || ps.ApiKey == "" {
 		if err == nil {

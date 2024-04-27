@@ -6,7 +6,7 @@ import (
 )
 
 func (t *ZeusWorkerTestSuite) TestSecretsSelect() {
-	user2 := 1710298581127603000
+	user2 := 0
 
 	// user2 FlowsOrgID
 	ps, err := aws_secrets.GetMockingbirdPlatformSecrets(ctx, org_users.NewOrgUserWithID(user2, 0), "api-iris")
@@ -14,4 +14,14 @@ func (t *ZeusWorkerTestSuite) TestSecretsSelect() {
 	t.Require().NotNil(ps)
 	t.Assert().NotEmpty(ps.S3AccessKey)
 	t.Assert().NotEmpty(ps.S3SecretKey)
+
+}
+func (t *ZeusWorkerTestSuite) TestSecretsSelect2() {
+	user2 := 1710298581127603000
+	t.Ou.UserID = user2
+	t.Ou.OrgID = user2
+	// user2 FlowsOrgID
+	ps, err := GetMockingBirdSecrets(ctx, t.Ou)
+	t.Require().Nil(err)
+	t.Require().NotNil(ps)
 }

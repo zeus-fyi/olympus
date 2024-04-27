@@ -92,6 +92,10 @@ const (
 	flowsSecretsOrgID = 1710298581127603000
 )
 
+var flowKeys = map[string]bool{
+	"openai-api-key": true,
+}
+
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	if pr.Url == "" {
 		err := fmt.Errorf("error: URL is required")
@@ -100,7 +104,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 	}
 
 	to := pr.OrgID
-	if pr.IsFlowRequest && pr.SecretNameRef == "api-iris" {
+	if pr.IsFlowRequest && flowKeys[pr.SecretNameRef] {
 		to = flowsSecretsOrgID
 	}
 	var bearer string

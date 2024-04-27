@@ -3,6 +3,7 @@ package ai_platform_service_orchestrations
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/rs/zerolog/log"
@@ -127,7 +128,11 @@ func (z *ZeusAiPlatformActivities) FanOutApiCallRequestTask(ctx context.Context,
 						log.Err(rerrr).Interface("pi", pi).Msg("FanOutApiCallRequestTask: saveRetrievalRespErr failed")
 						return nil, rerrr
 					}
-					log.Err(err).Interface("pi", pi).Msg("FanOutApiCallRequestTask: failed")
+					if cp.Tc.WorkflowRetrievalResult.Attempts == 0 {
+						cp.Tc.WorkflowRetrievalResult.Attempts = 1
+					}
+					log.Err(err).Interface("pi", pi).Interface("cp.Tc.WorkflowRetrievalResult.Attempts", cp.Tc.WorkflowRetrievalResult.Attempts).Msg("FanOutApiCallRequestTask: failed")
+					time.Sleep(time.Duration(cp.Tc.WorkflowRetrievalResult.Attempts) * time.Minute)
 					return nil, err
 				}
 				activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%d", pi))

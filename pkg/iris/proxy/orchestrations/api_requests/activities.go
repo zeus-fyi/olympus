@@ -92,26 +92,32 @@ const (
 	flowsSecretsOrgID = 1710298581127603000
 )
 
+var flowKeys = map[string]bool{
+	"openai-api-key": true,
+}
+
 func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, pr *ApiProxyRequest) (*ApiProxyRequest, error) {
 	if pr.Url == "" {
 		err := fmt.Errorf("error: URL is required")
 		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
 		return pr, err
 	}
-
 	to := pr.OrgID
-	if pr.IsFlowRequest && pr.SecretNameRef == "api-iris" {
-		to = flowsSecretsOrgID
-	}
+	tou := pr.UserID
+	//if pr.IsFlowRequest && flowKeys[pr.SecretNameRef] {
+	//	to = flowsSecretsOrgID
+	//	tou = flowsSecretsOrgID
+	//}
 	var bearer string
 	var user, pw string
 	if pr.SecretNameRef != "" {
-		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(to, pr.UserID), pr.SecretNameRef)
+		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(to, tou), pr.SecretNameRef)
 		if ps != nil && ps.BearerToken != "" {
 			bearer = ps.BearerToken
 		} else if err != nil {
 			log.Err(err).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
-			return pr, err
+			err = nil
+			ps = &aws_secrets.OAuth2PlatformSecret{}
 		}
 		if len(ps.TwillioAccount) > 0 {
 			user = ps.TwillioAccount

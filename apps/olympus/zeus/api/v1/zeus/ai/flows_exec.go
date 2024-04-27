@@ -120,8 +120,8 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			wfExecParams.MergeWorkflowOverrides(resp[ri].WorkflowOverrides)
 		}
 		wfExecParams.WorkflowOverrides.IsUsingFlows = true
-		wfExecParams.WorkflowTemplate.WorkflowName = "mixed"
-		wfExecParams.WorkflowTemplate.WorkflowGroup = "mixed-group"
+		wfExecParams.WorkflowTemplate.WorkflowName = "csv-analysis"
+		wfExecParams.WorkflowTemplate.WorkflowGroup = "flows"
 		fmt.Println(wfExecParams)
 		rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, wfExecParams)
 		if err != nil {

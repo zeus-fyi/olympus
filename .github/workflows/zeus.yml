@@ -18,6 +18,7 @@ on:
       - ai-triggers
       - aws-eks-auto-cfg
       - add-flows
+      - csv-merge
 
 # Configure a trust relationship on your Depot project for your git repository so you can use OIDC token auth between GHA and your Depot project.
 permissions:

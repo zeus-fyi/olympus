@@ -28,7 +28,7 @@ func (t *ZeusWorkerTestSuite) TestCsvIterator() {
 }
 
 func (t *ZeusWorkerTestSuite) TestCsvIteratorReports() {
-	fnv := "CsvIteratorDebug-cycle-1-chunk-0-1714187615313105000.json"
+	fnv := "CsvIteratorDebug-cycle-1-chunk-0-1714195427378636000.json"
 	dbg := OpenCsvIteratorDebug(fnv)
 	na := NewZeusAiPlatformActivities()
 	mb := dbg.Cp

@@ -14,6 +14,11 @@ import (
 
 func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp *MbChildSubProcessParams) error {
 	var sourceTaskIds []int
+
+	// for dbg
+	//gd := CsvIteratorDebug{cp}
+	//gd.Save()
+
 	for _, wfi := range cp.WfExecParams.WorkflowTasks {
 		if wfi.AnalysisTaskID > 0 && wfi.AggTaskID == nil {
 			sourceTaskIds = append(sourceTaskIds, wfi.AnalysisTaskID)
@@ -58,14 +63,13 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 		if b == nil {
 			continue
 		}
-		tmp := InputDataAnalysisToAgg{
-			TaskOffset: r.TaskOffset,
-		}
+		tmp := InputDataAnalysisToAgg{}
 		jerr := json.Unmarshal(b.Bytes(), &tmp)
 		if jerr != nil {
 			log.Err(jerr).Msg("GenerateCycleReports: failed")
 			continue
 		}
+		tmp.TaskOffset = r.TaskOffset
 		resp = append(resp, tmp)
 	}
 	var payloadMaps []map[string]interface{}

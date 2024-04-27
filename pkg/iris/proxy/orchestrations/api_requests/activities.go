@@ -102,15 +102,16 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 		log.Err(err).Msg("ExtLoadBalancerRequest: URL is required")
 		return pr, err
 	}
-
 	to := pr.OrgID
+	tou := pr.UserID
 	if pr.IsFlowRequest && flowKeys[pr.SecretNameRef] {
 		to = flowsSecretsOrgID
+		tou = flowsSecretsOrgID
 	}
 	var bearer string
 	var user, pw string
 	if pr.SecretNameRef != "" {
-		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(to, pr.UserID), pr.SecretNameRef)
+		ps, err := aws_secrets.GetMockingbirdPlatformSecrets(context.Background(), org_users.NewOrgUserWithID(to, tou), pr.SecretNameRef)
 		if ps != nil && ps.BearerToken != "" {
 			bearer = ps.BearerToken
 		} else if err != nil {

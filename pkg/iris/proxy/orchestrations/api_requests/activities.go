@@ -116,7 +116,7 @@ func (i *IrisApiRequestsActivities) ExtLoadBalancerRequest(ctx context.Context, 
 			bearer = ps.BearerToken
 		} else if err != nil {
 			log.Err(err).Msg("ProcessRpcLoadBalancerRequest: failed to get mockingbird secrets")
-			return pr, err
+			err = nil
 		}
 		if len(ps.TwillioAccount) > 0 {
 			user = ps.TwillioAccount

@@ -34,7 +34,7 @@ func getOrgRetIfFlows(cp *MbChildSubProcessParams) org_users.OrgUser {
 
 func getFanOutRetPolicy(cp *MbChildSubProcessParams, ao workflow.ActivityOptions) workflow.ActivityOptions {
 	cao := ao
-	cao.HeartbeatTimeout = time.Minute * 5
+	cao.HeartbeatTimeout = time.Minute * 10
 	cao.RetryPolicy = GetRetryPolicy(cp.Tc.Retrieval, time.Hour*24)
 	cao.RetryPolicy.MaximumAttempts = 10000
 	return cao

@@ -2,7 +2,7 @@ import {Card, CardActionArea, CardContent} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import {useDispatch, useSelector} from "react-redux";
-import {setCsvHeaders, setUploadContacts} from "../../redux/flows/flows.reducer";
+import {setContactsCsvFilename, setCsvHeaders, setUploadContacts} from "../../redux/flows/flows.reducer";
 import Container from "@mui/material/Container";
 import {ContactsTable} from "./ContactsTable";
 import {RootState} from "../../redux/store";
@@ -49,6 +49,7 @@ export function CsvUploadActionAreaCard(props: any) {
                         const data = result.data;
                         const headers = result.meta.fields || [];
                         if (Array.isArray(headers)) {
+                            dispatch(setContactsCsvFilename(file.name));
                             dispatch(setCsvHeaders(headers));
                             dispatch(setUploadContacts(data as []));
                         }

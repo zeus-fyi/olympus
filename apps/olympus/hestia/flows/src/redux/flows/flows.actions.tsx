@@ -2,6 +2,7 @@ export interface FlowState {
     uploadContentContacts: [];
     promptsCsvContent: [],
     csvHeaders: string[];
+    contactsCsvFilename: string;
     promptHeaders: string[];
     results: [];
     stages: {
@@ -21,6 +22,7 @@ export const initialState: FlowState = {
     csvHeaders: [],
     promptHeaders: [],
     results: [],
+    contactsCsvFilename: '',
     stages: {
         linkedIn: false,
         linkedInBiz: false,
@@ -34,13 +36,14 @@ export const initialState: FlowState = {
         googleSearch: '',
         websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
     },
-    previewCount: 0,
+    previewCount: 3,
 }
 
 // [key: string]: string;
 
 export interface FlowAction {
     previewCount: number;
+    contactsCsvFilename: string;
     contentContactsCsv: [];
     contentContactsCsvStr: string;
     promptsCsv: [];

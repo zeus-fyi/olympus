@@ -34,7 +34,6 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 			log.Err(werr).Msg("SaveCsvTaskOutput: gs3wfs failed to select workflow io")
 			return 0, werr
 		}
-
 		var payloadMaps []map[string]interface{}
 		sgo := wio.GetOutSearchGroups()
 		if sgo != nil && len(sgo) > 0 {
@@ -62,28 +61,25 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 						cnT := cme.MergeColName
 						log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
 						cv := convEntityToCsvCol(cnT, payloadMaps, 0)
-						fmt.Println(cv)
-						merged, merr := utils_csv.MergeCsvEntity(source, cv, cme)
+						//fmt.Println(cv)
+						_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme)
 						if merr != nil {
 							log.Err(merr).Msg("SaveCsvTaskOutput: MergeCsvEntity")
 							return 0, err
 						}
-						if merged == nil {
-							log.Warn().Msg("SaveCsvTaskOutput: merged nil")
+						if ms == nil {
+							log.Warn().Msg("GenerateCycleReports: merged nil")
 							continue
 						}
-						mergedCsvStr, merr := utils_csv.PayloadToCsvString(merged)
-						if merr != nil {
-							log.Err(merr).Msg("SaveCsvTaskOutput: MergeCsvEntity")
-							return 0, merr
-						}
-						source = artemis_entities.UserEntity{
-							Platform: "csv-exports",
-							MdSlice: []artemis_entities.UserEntityMetadata{
-								{
-									TextData: aws.String(mergedCsvStr),
+						for _, vs := range ms {
+							source = artemis_entities.UserEntity{
+								Platform: "csv-exports",
+								MdSlice: []artemis_entities.UserEntityMetadata{
+									{
+										TextData: aws.String(vs),
+									},
 								},
-							},
+							}
 						}
 						rna := cp.GetRunName()
 						if i > 0 {

@@ -14,6 +14,8 @@ export function Commands(props: any) {
     const bodyPrompts = useSelector((state: any) => state.flows.promptsCsvContent);
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
     const cmds = useSelector((state: any) => state.flows.commandPrompts);
+    const previewCount = useSelector((state: any) => state.flows.previewCount);
+    const contactCsvFilename = useSelector((state: any) => state.flows.contactsCsvFilename);
     const [checked, setChecked] = React.useState(false);
     const [checkedLi, setCheckedLi] = React.useState(false);
     const [multiPromptOn, setMultiPromptOn] = React.useState(false);
@@ -110,6 +112,7 @@ export function Commands(props: any) {
         try {
             setFlowsRequestStatus('pending');
             const fa = {
+                contactsCsvFilename: contactCsvFilename,
                 contentContactsCsv: [] as [],
                 contentContactsCsvStr: objectArrayToCsv(contacts),
                 contentContactsFieldMaps: {},
@@ -187,7 +190,7 @@ export function Commands(props: any) {
                 <Button
                     variant="contained"
                     disabled={buttonDisabledCreate}
-                    onClick={() => onClickSubmit(10)}
+                    onClick={() => onClickSubmit(previewCount)}
                     sx={{
                         mb: 2,
                         bgcolor: 'teal', // Replace 'dark teal' with the specific color code

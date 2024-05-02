@@ -46,7 +46,7 @@ func ExportRunCsvRequest(c echo.Context, id int) error {
 	// 7138983863666903883
 	//ojr := artemis_orchestrations.OrchestrationsAnalysis{}
 	//ojr.OrchestrationName = "test-wf"
-	log.Info().Interface("oj.OrchestrationName", ojr.OrchestrationName).Msg("ExportRunCsvRequest")
+	log.Info().Interface("oj.GroupName", ojr.GroupName).Msg("ExportRunCsvRequest")
 	ue := artemis_entities.UserEntity{
 		Nickname: ojr.OrchestrationName,
 		Platform: "csv-exports",
@@ -60,7 +60,7 @@ func ExportRunCsvRequest(c echo.Context, id int) error {
 			continue
 		}
 		c.Response().Header().Set("Content-Type", "text/csv")
-		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.csv"`, ue.Nickname))
+		c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.csv"`, ojr.GroupName))
 		_, err = c.Response().Write([]byte(*v.TextData))
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, nil)

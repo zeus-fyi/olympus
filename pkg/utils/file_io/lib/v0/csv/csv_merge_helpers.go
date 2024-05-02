@@ -30,7 +30,6 @@ func NewCsvMergeEntityFromSrcBin(colName string, emRow map[string][]int) ([]byte
 		MergeColName: colName,
 		Rows:         emRow,
 	}
-
 	b, err := json.Marshal(cme)
 	if err != nil {
 		log.Err(err).Msg("failed to marshal emRow")
@@ -39,17 +38,34 @@ func NewCsvMergeEntityFromSrcBin(colName string, emRow map[string][]int) ([]byte
 	return b, nil
 }
 
-func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[string]interface{}, cme CsvMergeEntity) ([]map[string]string, error) {
+func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[string]interface{}, cme CsvMergeEntity) ([]map[string]string, []string, error) {
+	var mergedCsvStrs []string
+
 	if len(appendCsvEntry) == 0 {
 		for _, v := range source.MdSlice {
 			if v.TextData != nil && *v.TextData != "" {
+				hh, err := ParseCsvStringOrderedHeaders(*v.TextData)
+				if err != nil {
+					return nil, nil, err
+				}
 				csvMapMerge, err := ParseCsvStringToMap(*v.TextData)
 				if err != nil {
 					log.Warn().Err(err).Msg("ParseCsvStringToMap")
 					err = nil
-					return nil, nil
+					return nil, nil, nil
 				} else {
-					return csvMapMerge, nil
+					sm, eerr := PayloadToCsvString(csvMapMerge)
+					if eerr != nil {
+						log.Err(eerr).Msg("mergeRets:")
+						return nil, nil, eerr
+					}
+					rv, eerr := SortCSV(sm, hh)
+					if eerr != nil {
+						log.Err(eerr).Msg("MergeCsvEntity: ")
+						return nil, nil, eerr
+					}
+					mergedCsvStrs = append(mergedCsvStrs, rv)
+					return csvMapMerge, mergedCsvStrs, nil
 				}
 			}
 		}
@@ -57,29 +73,44 @@ func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[str
 	var merged []map[string]string
 	for _, v := range source.MdSlice {
 		if v.TextData != nil && len(*v.TextData) > 0 {
+			hh, err := ParseCsvStringOrderedHeaders(*v.TextData)
+			if err != nil {
+				return nil, nil, err
+			}
 			csvMap, err := ParseCsvStringToMap(*v.TextData)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			pscsv, perr := PayloadV2ToCsvString(appendCsvEntry)
 			if perr != nil {
 				log.Err(perr).Interface("appendCsvEntry", appendCsvEntry).Msg("PayloadV2ToCsvString: ")
-				return nil, perr
+				return nil, nil, err
 			}
 			csvMapMerge, err := ParseCsvStringToMap(pscsv)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			log.Info().Interface("csvMapMerge", csvMapMerge).Msg("ParseCsvStringToMap: csvMapMerge")
 			merged, err = AppendCsvData(csvMap, csvMapMerge, cme.MergeColName, cme.Rows)
 			if err != nil {
 				log.Err(err).Interface("merged", merged).Msg("mergeRets: empty rets")
-				return nil, err
+				return nil, nil, err
 			}
+			sm, err := PayloadToCsvString(merged)
+			if err != nil {
+				log.Err(err).Interface("merged", merged).Msg("mergeRets:")
+				return nil, nil, err
+			}
+			rv, err := SortCSV(sm, hh)
+			if err != nil {
+				log.Err(err).Interface("merged", merged).Msg("mergeRets: ")
+				return nil, nil, err
+			}
+			mergedCsvStrs = append(mergedCsvStrs, rv)
 			log.Info().Interface("merged", merged).Msg("appendCsvData: merged")
 		}
 	}
-	return merged, nil
+	return merged, mergedCsvStrs, nil
 }
 
 func AppendCsvData(inputCsvData, csvData []map[string]string, colName string, emRow map[string][]int) ([]map[string]string, error) {

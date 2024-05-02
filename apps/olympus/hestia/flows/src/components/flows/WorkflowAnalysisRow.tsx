@@ -64,7 +64,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 <TableCell align="left">{row.orchestration.active ? 'Yes' : 'No'}</TableCell>
                 <TableCell align="left">{row.runCycles}</TableCell>
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
-                { csvExport && <CsvExportButton name={row.orchestration.orchestrationName} orchStrID={row.orchestration.orchestrationStrID} results={row}/>}
+                { csvExport && <CsvExportButton name={row.orchestration.groupName} orchStrID={row.orchestration.orchestrationStrID} results={row}/>}
             </TableRow>
             {row.aggregatedEvalResults && row.aggregatedEvalResults.length > 0 && (
                 <TableRow>

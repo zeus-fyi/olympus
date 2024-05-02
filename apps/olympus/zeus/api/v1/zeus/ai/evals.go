@@ -98,7 +98,6 @@ func ValidateEvalOps(ef *artemis_orchestrations.EvalFn) error {
 				}
 				ef.Schemas[emi].Fields[fi].FieldID = fidInt
 			}
-
 			if len(fe.FieldName) <= 0 {
 				return errors.New("invalid field name")
 			}

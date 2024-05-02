@@ -14,6 +14,12 @@ const flowsSlice = createSlice({
         setCsvHeaders: (state, action: PayloadAction<string[]>) => {
             state.csvHeaders = action.payload;
         },
+        setContactsCsvFilename: (state, action: PayloadAction<string>) => {
+            state.contactsCsvFilename = action.payload;
+        },
+        setPreviewCount: (state, action: PayloadAction<number>) => {
+            state.previewCount = action.payload;
+        },
         setPromptHeaders: (state, action: PayloadAction<string[]>) => {
             state.promptHeaders = action.payload;
         },
@@ -42,6 +48,8 @@ export const {
     setPromptHeaders,
     setResults,
     setStages,
-    setCommandPrompt
+    setCommandPrompt,
+    setPreviewCount,
+    setContactsCsvFilename
 } = flowsSlice.actions;
 export default flowsSlice.reducer

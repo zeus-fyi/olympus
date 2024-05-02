@@ -52,6 +52,7 @@ func FindAndMergeMatchingNicknamesByLabelPrefix(source artemis_entities.UserEnti
 	return mergeCsvs(source, mes, wsi)
 }
 
+// deprecated
 func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.UserEntity, wsi *WorkflowStageIO) (*artemis_entities.UserEntity, error) {
 	var results []hera_search.SearchResult
 	// todo; multi?
@@ -86,7 +87,7 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 			}
 		}
 	}
-	merged, err := utils_csv.MergeCsvEntity(source, appendCsvEntry, cme)
+	merged, _, err := utils_csv.MergeCsvEntity(source, appendCsvEntry, cme)
 	if err != nil {
 		log.Err(err).Msg("mergeCore")
 		return nil, err

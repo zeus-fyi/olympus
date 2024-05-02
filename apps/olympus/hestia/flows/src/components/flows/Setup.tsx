@@ -4,9 +4,18 @@ import * as React from "react";
 import Checkbox from "@mui/material/Checkbox";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
+import TextField from "@mui/material/TextField";
+import {setPreviewCount} from "../../redux/flows/flows.reducer";
+import {useDispatch, useSelector} from "react-redux";
 
 export function SetupCard(props: any) {
     const { webChecked, handleChangeWebChecked, vesChecked, handleChangeVesChecked, multiPromptOn, handleChangeMultiPromptOn, checked, checkedLi, handleChangeLi, handleChange, gs, handleChangeGs} = props;
+    const previewCount = useSelector((state: any) => state.flows.previewCount);
+
+    const handleChangeCount = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setPreviewCount(Number(event.target.value)));
+    };
+    const dispatch = useDispatch()
     return (
         <div>
             <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>
@@ -59,6 +68,17 @@ export function SetupCard(props: any) {
                             onChange={handleChangeWebChecked}
                         />
                         <Typography variant="body1">Fetch Website</Typography>
+                    </Stack>
+                    <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>
+                        <TextField
+                            label="Preview Count"
+                            variant="outlined"
+                            type="number"
+                            value={previewCount}
+                            inputProps={{ min: 1 }}  // Set minimum value to 0
+                            onChange={handleChangeCount}
+                        />
+                        <Typography variant="body1">Preview Count</Typography>
                     </Stack>
                 </Card>
             </div>

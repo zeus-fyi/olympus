@@ -3,10 +3,25 @@ package utils_csv
 import (
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 )
+
+func ParseCsvStringOrderedHeaders(csvString string) ([]string, error) {
+	// Create a new reader from the CSV string
+	reader := csv.NewReader(strings.NewReader(csvString))
+
+	// Read the first row to get column headers
+	headers, err := reader.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the headers, which are the first row of the CSV
+	return headers, nil
+}
 
 func ParseCsvStringToMap(csvString string) ([]map[string]string, error) {
 	// Create a new reader from the CSV string
@@ -122,4 +137,74 @@ func PayloadV2ToCsvString(payload []map[string]interface{}) (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+func SortCSV(csvString string, orderedHeaders []string) (string, error) {
+	reader := csv.NewReader(strings.NewReader(csvString))
+	records, err := reader.ReadAll()
+	if err != nil {
+		return "", err
+	}
+
+	if len(records) < 1 {
+		return "", errors.New("csv contains no data")
+	}
+
+	originalHeaders := records[0]
+	headerMap := make(map[string]int) // Map to store header to index
+	for i, header := range originalHeaders {
+		headerMap[header] = i
+	}
+
+	// Prepare the new header order
+	newHeaders := make([]string, 0, len(originalHeaders))
+	knownHeaders := make(map[string]bool)
+	for _, header := range orderedHeaders {
+		if _, exists := headerMap[header]; exists {
+			newHeaders = append(newHeaders, header)
+			knownHeaders[header] = true
+		}
+	}
+
+	// Append unknown headers in alphabetical order
+	unknownHeaders := make([]string, 0)
+	for header := range headerMap {
+		if !knownHeaders[header] {
+			unknownHeaders = append(unknownHeaders, header)
+		}
+	}
+	sort.Strings(unknownHeaders)
+	newHeaders = append(newHeaders, unknownHeaders...)
+
+	// Create an index map based on new headers
+	newIndexMap := make(map[string]int)
+	for i, header := range newHeaders {
+		newIndexMap[header] = i
+	}
+
+	// Rearrange each record according to the new header order
+	sortedRecords := make([][]string, len(records))
+	sortedRecords[0] = newHeaders // Set the new headers as the first record
+	for i, record := range records {
+		if i == 0 {
+			continue
+		}
+		newRecord := make([]string, len(newHeaders))
+		for j, header := range newHeaders {
+			if oldIndex, exists := headerMap[header]; exists {
+				newRecord[j] = record[oldIndex]
+			}
+		}
+		sortedRecords[i] = newRecord
+	}
+
+	// Convert the records back to a CSV string
+	var sb strings.Builder
+	writer := csv.NewWriter(&sb)
+	if err := writer.WriteAll(sortedRecords); err != nil {
+		return "", err
+	}
+	writer.Flush()
+
+	return sb.String(), nil
 }

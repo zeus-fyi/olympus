@@ -113,7 +113,6 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 	if len(jsr) > 0 {
 		payloadMaps = append(payloadMaps, artemis_orchestrations.CreateMapInterfaceFromAssignedSchemaFields(jsr)...)
 	}
-
 	for i, source := range gens {
 		//tmp := source.MdSlice
 		for mind, mi := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
@@ -129,28 +128,26 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 					cnT := cme.MergeColName
 					log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
 					cv := convEntityToCsvCol(cnT, payloadMaps, mind)
-					fmt.Println(mind, cv)
-					merged, merr := utils_csv.MergeCsvEntity(source, cv, cme)
+					//fmt.Println(mind, cv)
+					_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme)
 					if merr != nil {
 						log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
 						return err
 					}
-					if merged == nil {
+					if ms == nil {
 						log.Warn().Msg("GenerateCycleReports: merged nil")
 						continue
 					}
-					mergedCsvStr, merr := utils_csv.PayloadToCsvString(merged)
-					if merr != nil {
-						log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
-						return merr
-					}
-					source = artemis_entities.UserEntity{
-						Platform: "csv-exports",
-						MdSlice: []artemis_entities.UserEntityMetadata{
-							{
-								TextData: aws.String(mergedCsvStr),
+					// todo, dummy func only has one ms value, will need 2 fix later if using multiple
+					for _, vs := range ms {
+						source = artemis_entities.UserEntity{
+							Platform: "csv-exports",
+							MdSlice: []artemis_entities.UserEntityMetadata{
+								{
+									TextData: aws.String(vs),
+								},
 							},
-						},
+						}
 					}
 				}
 			}

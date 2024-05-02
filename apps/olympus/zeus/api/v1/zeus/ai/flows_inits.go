@@ -58,7 +58,7 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 	}
 
 	w.InitMaps()
-	err := w.ConvertToCsvStrToMap()
+	headersCsv, err := w.ConvertToCsvStrToMap()
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
@@ -90,7 +90,7 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		log.Err(err).Interface("w", w).Msg("ScrapeRegularWebsiteSetup failed")
 		return nil, err
 	}
-	uef, err = w.SaveCsvImports(ctx, ou, uef)
+	uef, err = w.SaveCsvImports(ctx, ou, uef, headersCsv)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
 		return nil, err
@@ -101,11 +101,16 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 	return uef, err
 }
 
-func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_users.OrgUser, uef *artemis_entities.EntitiesFilter) (*artemis_entities.EntitiesFilter, error) {
+func (w *ExecFlowsActionsRequest) SaveCsvImports(ctx context.Context, ou org_users.OrgUser, uef *artemis_entities.EntitiesFilter, he []string) (*artemis_entities.EntitiesFilter, error) {
 	if uef == nil || len(w.FlowsActionsRequest.ContactsCsvStr) == 0 {
 		return nil, nil
 	}
 	cs, err := utils_csv.PayloadToCsvString(w.ContactsCsv)
+	if err != nil {
+		log.Err(err).Interface("w.ContactsCsv", w.ContactsCsvStr).Msg("SaveCsvImports: PayloadToCsvString: failed")
+		return nil, err
+	}
+	cs, err = utils_csv.SortCSV(cs, he)
 	if err != nil {
 		log.Err(err).Interface("w.ContactsCsv", w.ContactsCsvStr).Msg("SaveCsvImports: PayloadToCsvString: failed")
 		return nil, err

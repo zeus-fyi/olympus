@@ -114,12 +114,19 @@ func (w *ExecFlowsActionsRequest) getPrompts() []string {
 	return prompts
 }
 
-func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
+func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() ([]string, error) {
+	var headersCsv []string
 	if len(w.FlowsActionsRequest.ContactsCsvStr) > 0 {
+		headers, err := utils_csv.ParseCsvStringOrderedHeaders(w.FlowsActionsRequest.ContactsCsvStr)
+		if err != nil {
+			log.Err(err).Msg("ConvertToCsvStrToMap: error")
+			return nil, err
+		}
+		headersCsv = headers
 		cv, err := utils_csv.ParseCsvStringToMap(w.FlowsActionsRequest.ContactsCsvStr)
 		if err != nil {
 			log.Err(err).Msg("SaveCsvImports: ContactsCsvStr: error")
-			return err
+			return nil, err
 		}
 		// Check if PreviewCount is set and limit the number of records accordingly
 		if w.PreviewCount > 0 && len(cv) > w.PreviewCount {
@@ -133,9 +140,9 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() error {
 		pcv, err := utils_csv.ParseCsvStringToMap(w.FlowsActionsRequest.PromptsCsvStr)
 		if err != nil {
 			log.Err(err).Msg("SaveCsvImports: PromptsCsvStr: error")
-			return err
+			return nil, err
 		}
 		w.PromptsCsv = pcv
 	}
-	return nil
+	return headersCsv, nil
 }

@@ -34,7 +34,7 @@ export const initialState: FlowState = {
         googleSearch: '',
         websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
     },
-    previewCount: 0,
+    previewCount: 3,
 }
 
 // [key: string]: string;

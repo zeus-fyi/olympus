@@ -2,6 +2,7 @@ export interface FlowState {
     uploadContentContacts: [];
     promptsCsvContent: [],
     csvHeaders: string[];
+    contactsCsvFilename: string;
     promptHeaders: string[];
     results: [];
     stages: {
@@ -21,6 +22,7 @@ export const initialState: FlowState = {
     csvHeaders: [],
     promptHeaders: [],
     results: [],
+    contactsCsvFilename: '',
     stages: {
         linkedIn: false,
         linkedInBiz: false,
@@ -41,6 +43,7 @@ export const initialState: FlowState = {
 
 export interface FlowAction {
     previewCount: number;
+    contactsCsvFilename: string;
     contentContactsCsv: [];
     contentContactsCsvStr: string;
     promptsCsv: [];

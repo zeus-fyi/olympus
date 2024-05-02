@@ -16,10 +16,11 @@ type FlowsActionsRequest struct {
 }
 
 type FlowsCsvPayload struct {
-	ContactsCsvStr string              `json:"contentContactsCsvStr"`
-	ContactsCsv    []map[string]string `json:"contentContactsCsv,omitempty"`
-	PromptsCsvStr  string              `json:"promptsCsvStr"`
-	PromptsCsv     []map[string]string `json:"promptsCsv,omitempty,omitempty"`
+	ContactsCsvFilename string              `json:"contactsCsvFilename"`
+	ContactsCsvStr      string              `json:"contentContactsCsvStr"`
+	ContactsCsv         []map[string]string `json:"contentContactsCsv,omitempty"`
+	PromptsCsvStr       string              `json:"promptsCsvStr"`
+	PromptsCsv          []map[string]string `json:"promptsCsv,omitempty,omitempty"`
 }
 
 func FlowsActionsRequestHandler(c echo.Context) error {

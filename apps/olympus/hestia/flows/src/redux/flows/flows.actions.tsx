@@ -1,4 +1,5 @@
 export interface FlowState {
+    flowList: string[],
     uploadContentContacts: [];
     promptsCsvContent: [],
     csvHeaders: string[];
@@ -14,9 +15,12 @@ export interface FlowState {
     };
     commandPrompts: {}
     previewCount: number
+    stageColMap: StageColMap;        // Added new field
+    stagePromptMap: StagePromptMap;  // Added new field
 }
 
 export const initialState: FlowState = {
+    flowList: [],
     uploadContentContacts: [],
     promptsCsvContent: [],
     csvHeaders: [],
@@ -36,10 +40,23 @@ export const initialState: FlowState = {
         googleSearch: '',
         websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
     },
+    stageColMap: {},
+    stagePromptMap: {},
     previewCount: 3,
 }
 
-// [key: string]: string;
+export type UpdateTaskRelationshipPayload = {
+    key: string;
+    subKey: string;
+};
+
+export interface StageColMap {
+    [key: string]: string ;
+}
+
+export interface StagePromptMap {
+    [key: string]: string ;
+}
 
 export interface FlowAction {
     previewCount: number;

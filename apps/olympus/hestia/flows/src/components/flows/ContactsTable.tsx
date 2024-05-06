@@ -9,7 +9,6 @@ import {useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 
 export function ContactsTable(props: any) {
-    const {} = props;
     const contacts = useSelector((state: RootState) => state.flows.uploadContentContacts);
     const csvHeaders = useSelector((state: RootState) => state.flows.csvHeaders);
     const [page, setPage] = React.useState(0);

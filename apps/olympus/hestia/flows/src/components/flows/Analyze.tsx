@@ -4,14 +4,18 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import * as React from "react";
+import {useEffect} from "react";
 import {useDispatch} from "react-redux";
 import {setPromptHeaders, setPromptsCsvContent, setUploadContacts} from "../../redux/flows/flows.reducer";
 import Container from "@mui/material/Container";
 import {TaskPromptsTable} from "./PromptTable";
 import {PromptsTextFieldRows} from "./UploadFieldMap";
 import Papa from "papaparse";
+import {aiApiGateway} from "../../gateway/ai";
+import {setWorkflows} from "../../redux/ai/ai.reducer";
 
 export function AnalyzeActionAreaCard(props: any) {
+    const [loading, setIsLoading] = React.useState(false);
     const dispatch = useDispatch();
     const onUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -63,6 +67,29 @@ export function AnalyzeActionAreaCard(props: any) {
             console.error("Unsupported file type:", file.type);
         }
     };
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setIsLoading(true)
+                const response = await aiApiGateway.getWorkflowsRequest();
+                const statusCode = response.status;
+                if (statusCode < 400) {
+                    const data = response.data;
+                    dispatch(setWorkflows(data.workflows));
+                } else {
+                    console.log('Failed to get workflows', response);
+                }
+            } catch (e) {
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
+    if (loading) {
+        return (<div></div>)
+    }
+
     return (
         <div>
             <Card sx={{ maxWidth: 400 }}>
@@ -76,7 +103,7 @@ export function AnalyzeActionAreaCard(props: any) {
                 </CardActionArea>
             </Card>
             <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
-                <PromptsTextFieldRows/>
+                <PromptsTextFieldRows />
             </Container>
             <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
                 <TaskPromptsTable/>

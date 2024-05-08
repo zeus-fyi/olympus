@@ -21,7 +21,8 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 	for r, cvs := range w.ContactsCsv {
 		for cname, colValue := range cvs {
 			// "company",
-			if strings.Contains(strings.ToLower(cname), "linkedin") && strings.Contains(strings.ToLower(colValue), "linkedin.com/in") && len(colValue) > 0 {
+			v, ok := w.StageContactsMap[cname]
+			if (strings.Contains(strings.ToLower(cname), "linkedin") || (ok && v == linkedIn)) && strings.Contains(strings.ToLower(colValue), "linkedin.com/in") && len(colValue) > 0 {
 				if len(colName) > 0 && colName != cname {
 					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("LinkedInScraperSetup")
 					return fmt.Errorf(fmt.Sprintf("LinkedIn csv input has duplicate web column: expecting: %s actual: %s", colName, cname))
@@ -39,7 +40,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 					etm = append(etm, r)
 					emRow[uv] = etm
 				}
-				if _, ok := seen[uv]; ok {
+				if _, ok1 := seen[uv]; ok1 {
 					w.ContactsCsv[r][cname] = uv
 					continue
 				}
@@ -75,7 +76,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 			tmp.SystemPromptExt = v
 			w.TaskOverrides[wbsTaskName] = tmp
 		}
-		w.createWfTaskPromptOverrides(liWf, wbsTaskName, w.getPromptsMap())
+		w.createWfTaskPromptOverrides(liWf, wbsTaskName, w.getPromptsMap(linkedIn))
 		//w.createWfSchemaFieldOverride(liWf, wbsTaskName, "summary", prompts)
 	}
 	return nil
@@ -92,7 +93,8 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 	for r, cvs := range w.ContactsCsv {
 		for cname, colValue := range cvs {
 			// "company",
-			if strings.Contains(strings.ToLower(cname), "linkedin") && strings.Contains(strings.ToLower(colValue), "linkedin.com/company") && len(colValue) > 0 {
+			v, ok := w.StageContactsMap[cname]
+			if (strings.Contains(strings.ToLower(cname), "linkedin") || (ok && v == linkedInBiz)) && strings.Contains(strings.ToLower(colValue), "linkedin.com/company") && len(colValue) > 0 {
 				if len(colName) > 0 && colName != cname {
 					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("LinkedInBizScraperSetup")
 					return fmt.Errorf(fmt.Sprintf("LinkedInBiz csv input has duplicate web column: expecting: %s actual: %s", colName, cname))
@@ -110,7 +112,7 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 					etm = append(etm, r)
 					emRow[uv] = etm
 				}
-				if _, ok := seen[uv]; ok {
+				if _, ok1 := seen[uv]; ok1 {
 					w.ContactsCsv[r][cname] = uv
 					continue
 				}
@@ -146,7 +148,7 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 			tmp.SystemPromptExt = v
 			w.TaskOverrides[wbsTaskName] = tmp
 		}
-		w.createWfTaskPromptOverrides(liBizWf, wbsTaskName, w.getPromptsMap())
+		w.createWfTaskPromptOverrides(liBizWf, wbsTaskName, w.getPromptsMap(linkedInBiz))
 		//w.createWfSchemaFieldOverride(liBizWf, wbsTaskName, "summary", prompts)
 	}
 	return nil

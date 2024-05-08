@@ -9,9 +9,12 @@ import {SetupCard} from "./Setup";
 import {aiApiGateway} from "../../gateway/ai";
 import {useDispatch, useSelector} from "react-redux";
 import {setCommandPrompt} from "../../redux/flows/flows.reducer";
+import {RootState} from "../../redux/store";
 
 export function Commands(props: any) {
     const bodyPrompts = useSelector((state: any) => state.flows.promptsCsvContent);
+    const stagePromptMap = useSelector((state: RootState) => state.flows.stagePromptMap);
+    const stageContactsMap = useSelector((state: RootState) => state.flows.stageContactsMap);
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
     const cmds = useSelector((state: any) => state.flows.commandPrompts);
     const previewCount = useSelector((state: any) => state.flows.previewCount);
@@ -126,7 +129,9 @@ export function Commands(props: any) {
                     websiteScrape: webChecked
                 },
                 previewCount: previewCount,
-                commandPrompts: cmds
+                commandPrompts: cmds,
+                stageContactsMap: stageContactsMap,
+                stagePromptMap: stagePromptMap,
             };
             let res = await aiApiGateway.flowsRequest(fa);
             const statusCode = res.status;

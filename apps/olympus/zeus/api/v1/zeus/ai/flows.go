@@ -18,9 +18,11 @@ type FlowsActionsRequest struct {
 type FlowsCsvPayload struct {
 	ContactsCsvFilename string              `json:"contactsCsvFilename"`
 	ContactsCsvStr      string              `json:"contentContactsCsvStr"`
+	StageContactsMap    map[string]string   `json:"stageContactsMap,omitempty"`
 	ContactsCsv         []map[string]string `json:"contentContactsCsv,omitempty"`
 	PromptsCsvStr       string              `json:"promptsCsvStr"`
 	PromptsCsv          []map[string]string `json:"promptsCsv,omitempty,omitempty"`
+	StagePromptMap      map[string]string   `json:"stagePromptMap,omitempty"`
 }
 
 func FlowsActionsRequestHandler(c echo.Context) error {

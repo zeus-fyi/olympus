@@ -1,10 +1,13 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {initialState} from "./flows.actions";
+import {initialState, UpdateTaskRelationshipPayload} from "./flows.actions";
 
 const flowsSlice = createSlice({
     name: 'flows',
     initialState,
     reducers: {
+        setFlowList: (state, action: PayloadAction<string[]>) => {
+            state.flowList = action.payload;
+        },
         setPromptsCsvContent: (state, action: PayloadAction<[]>) => {
             state.promptsCsvContent = action.payload;
         },
@@ -12,6 +15,10 @@ const flowsSlice = createSlice({
             state.uploadContentContacts = action.payload;
         },
         setCsvHeaders: (state, action: PayloadAction<string[]>) => {
+            state.stageContactsMap = {}
+            action.payload.forEach(header => {
+                state.stageContactsMap[header] = "Default";
+            });
             state.csvHeaders = action.payload;
         },
         setContactsCsvFilename: (state, action: PayloadAction<string>) => {
@@ -22,6 +29,18 @@ const flowsSlice = createSlice({
         },
         setPromptHeaders: (state, action: PayloadAction<string[]>) => {
             state.promptHeaders = action.payload;
+            state.stagePromptMap = {}
+            action.payload.forEach(header => {
+                state.stagePromptMap[header] = "Default";
+            });
+        },
+        setPromptFlowMap: (state, action: PayloadAction<UpdateTaskRelationshipPayload>) => {
+            const { key, subKey } = action.payload;
+            state.stagePromptMap[key] = subKey
+        },
+        setContactsFlowMap: (state, action: PayloadAction<UpdateTaskRelationshipPayload>) => {
+            const { key, subKey } = action.payload;
+            state.stageContactsMap[key] = subKey;
         },
         setResults: (state, action: PayloadAction<[]>) => {
             state.results = action.payload;
@@ -50,6 +69,9 @@ export const {
     setStages,
     setCommandPrompt,
     setPreviewCount,
-    setContactsCsvFilename
+    setContactsCsvFilename,
+    setPromptFlowMap,
+    setContactsFlowMap,
+    setFlowList
 } = flowsSlice.actions;
 export default flowsSlice.reducer

@@ -76,7 +76,7 @@ export function CsvUploadActionAreaCard(props: any) {
                 </CardActionArea>
             </Card>
             <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
-                <ContactsTextFieldRows/>
+                <ContactsTextFieldRows />
             </Container>
             <Container maxWidth="xl" sx={{ ml: -5, mt: 4}}>
                 <ContactsTable contacts={contacts}/>

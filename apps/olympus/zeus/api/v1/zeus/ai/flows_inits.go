@@ -180,7 +180,8 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 	var pls []map[string]interface{}
 	for r, cvs := range w.ContactsCsv {
 		for cname, colValue := range cvs {
-			if (strings.Contains(cname, "web") || strings.Contains(cname, "url") || strings.Contains(cname, "link") || strings.Contains(cname, "site")) && len(colValue) > 0 {
+			v, ok1 := w.StageContactsMap[cname]
+			if (strings.Contains(cname, "web") || strings.Contains(cname, "url") || strings.Contains(cname, "link") || strings.Contains(cname, "site") || (ok1 && v == websiteScrape)) && len(colValue) > 0 {
 				if len(colName) > 0 && colName != cname {
 					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("ScrapeRegularWebsiteSetup")
 					return fmt.Errorf("duplicate web column")
@@ -224,7 +225,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
 	}
-	prompts := w.getPromptsMap()
+	prompts := w.getPromptsMap(websiteScrape)
 	if v, ok := w.CommandPrompts[websiteScrape]; ok && v != "" {
 		if len(prompts) <= 0 {
 			//prompts = []string{v}
@@ -234,6 +235,7 @@ func (w *ExecFlowsActionsRequest) ScrapeRegularWebsiteSetup(uef *artemis_entitie
 			}
 		}
 	}
+
 	w.createWfTaskPromptOverrides(webFetchWf, wbsTaskName, prompts)
 	//w.createWfSchemaFieldOverride(webFetchWf, wbsTaskName, "summary", prompts)
 	return nil
@@ -270,7 +272,8 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 	for r, cvs := range w.ContactsCsv {
 		for cname, colValue := range cvs {
 			tv := strings.ToLower(cname)
-			if strings.Contains(tv, "email") && len(colValue) > 0 && strings.Contains(colValue, "@") {
+			v, ok := w.StageContactsMap[cname]
+			if ((ok && v == validateEmails) || strings.Contains(tv, "email")) && len(colValue) > 0 && strings.Contains(colValue, "@") {
 				if len(colName) > 0 && colName != cname {
 					log.Info().Interface("colName", colName).Interface("cname", cname).Msg("EmailsValidatorSetup")
 					return fmt.Errorf(fmt.Sprintf("Email csv input has duplicate web column: expecting: %s actual: %s", colName, cname))

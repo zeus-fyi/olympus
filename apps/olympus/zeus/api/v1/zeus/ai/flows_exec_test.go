@@ -21,6 +21,16 @@ type FlowsWorkerTestSuite struct {
 
 var ctx = context.Background()
 
+func (t *FlowsWorkerTestSuite) TestGetMappedColumns() {
+
+	cm := map[string]string{
+		linkedIn: "colname",
+	}
+	w := ExecFlowsActionsRequest{}
+	w.StageContactsMap = cm
+
+}
+
 func (t *FlowsWorkerTestSuite) SetupTest() {
 	t.InitLocalConfigs()
 	apps.Pg.InitPG(ctx, t.Tc.ProdLocalDbPgconn)

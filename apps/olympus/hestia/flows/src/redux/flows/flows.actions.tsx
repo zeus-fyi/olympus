@@ -15,7 +15,7 @@ export interface FlowState {
     };
     commandPrompts: {}
     previewCount: number
-    stageColMap: StageColMap;        // Added new field
+    stageContactsMap: StageColMap;        // Added new field
     stagePromptMap: StagePromptMap;  // Added new field
 }
 
@@ -40,7 +40,7 @@ export const initialState: FlowState = {
         googleSearch: '',
         websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
     },
-    stageColMap: {},
+    stageContactsMap: {},
     stagePromptMap: {},
     previewCount: 3,
 }
@@ -67,5 +67,7 @@ export interface FlowAction {
     promptsCsvStr: string;
     stages: {};
     contentContactsFieldMaps: {};
-    commandPrompts: {}
+    commandPrompts: {};
+    stagePromptMap: {};
+    stageContactsMap:{};
 }

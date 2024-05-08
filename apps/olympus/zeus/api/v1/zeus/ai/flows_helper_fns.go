@@ -94,11 +94,14 @@ func (w *ExecFlowsActionsRequest) InitMaps() {
 	}
 }
 
-func (w *ExecFlowsActionsRequest) getPromptsMap() map[string]string {
+func (w *ExecFlowsActionsRequest) getPromptsMap(stage string) map[string]string {
 	prompts := make(map[string]string)
 	for _, cvs := range w.PromptsCsv {
 		for cn, colValue := range cvs {
-			prompts[cn] = colValue
+			v, ok := w.StagePromptMap[cn]
+			if ok && (v == stage || strings.ToLower(v) == "default") {
+				prompts[cn] = colValue
+			}
 		}
 	}
 	return prompts

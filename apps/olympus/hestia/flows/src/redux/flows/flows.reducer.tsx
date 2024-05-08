@@ -25,14 +25,18 @@ const flowsSlice = createSlice({
         },
         setPromptHeaders: (state, action: PayloadAction<string[]>) => {
             state.promptHeaders = action.payload;
+            state.stagePromptMap = {}
+            action.payload.forEach(header => {
+                state.stagePromptMap[header] = "Default";
+            });
         },
         setPromptFlowMap: (state, action: PayloadAction<UpdateTaskRelationshipPayload>) => {
             const { key, subKey } = action.payload;
             state.stagePromptMap[key] = subKey
         },
-        setColFlowMap: (state, action: PayloadAction<UpdateTaskRelationshipPayload>) => {
+        setContactsFlowMap: (state, action: PayloadAction<UpdateTaskRelationshipPayload>) => {
             const { key, subKey } = action.payload;
-            state.stageColMap[key] = subKey;
+            state.stageContactsMap[key] = subKey;
         },
         setResults: (state, action: PayloadAction<[]>) => {
             state.results = action.payload;
@@ -63,7 +67,7 @@ export const {
     setPreviewCount,
     setContactsCsvFilename,
     setPromptFlowMap,
-    setColFlowMap,
+    setContactsFlowMap,
     setFlowList
 } = flowsSlice.actions;
 export default flowsSlice.reducer

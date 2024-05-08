@@ -3,20 +3,20 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {Card, MenuItem, Select, Stack} from "@mui/material";
 import Box from "@mui/material/Box";
-import {setColFlowMap, setPromptFlowMap} from "../../redux/flows/flows.reducer";
+import {setContactsFlowMap, setPromptFlowMap} from "../../redux/flows/flows.reducer";
 
 export function ContactsTextFieldRows(props: any) {
     const stages = useSelector((state: RootState) => state.flows.stages);
     const headers = useSelector((state: RootState) => state.flows.csvHeaders);
     const dispatch = useDispatch();
-    const contactsColMap = useSelector((state: RootState) => state.flows.stageColMap);
+    const stageContactsMap = useSelector((state: RootState) => state.flows.stageContactsMap);
 
     const handleSelectChange = async (promptName: string, wfTaskName: string) => {
         const payload = {
             key: promptName, // taskID
             subKey: wfTaskName, // retrievalID
         };
-        dispatch(setColFlowMap(payload));
+        dispatch(setContactsFlowMap(payload));
     }
 
     return (
@@ -43,7 +43,7 @@ export function ContactsTextFieldRows(props: any) {
                         <Box flexGrow={1} sx={{ mt: 0, ml: 2, mr: 2 }}>
                             <Select
                                 fullWidth
-                                value={contactsColMap[header] || 'Default'}
+                                value={stageContactsMap[header] || 'Default'}
                                 label={header}
                                 onChange={(event) => handleSelectChange(header, event.target.value as string)}
                                 displayEmpty

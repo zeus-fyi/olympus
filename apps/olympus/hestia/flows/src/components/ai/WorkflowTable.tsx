@@ -19,15 +19,21 @@ import {
 } from "../../redux/ai/ai.reducer";
 import {useDispatch, useSelector} from "react-redux";
 import Checkbox from "@mui/material/Checkbox";
-import {WorkflowTemplate} from "../../redux/ai/ai.types";
+import {Task, WorkflowTemplate} from "../../redux/ai/ai.types";
 import {WorkflowRow} from "./WorkflowRow";
 
 export function WorkflowTable(props: any) {
+    const {csvFilter} = props;
     const [page, setPage] = React.useState(0);
     const selected = useSelector((state: any) => state.ai.selectedWorkflows);
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
-    const workflows = useSelector((state: any) => state.ai.workflows);
+    let workflows = useSelector((state: any) => state.ai.workflows);
+    if (csvFilter && workflows) {
+        workflows = workflows.filter((workflow: WorkflowTemplate) => {
+            return workflow.tasks.some((task: Task) => task.responseFormat === 'csv');
+        })
+    }
     const dispatch = useDispatch();
     const handleChangeRowsPerPage = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -74,7 +80,6 @@ export function WorkflowTable(props: any) {
     if (workflows === null || workflows === undefined) {
         return (<div></div>)
     }
-
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - workflows.length) : 0;
 

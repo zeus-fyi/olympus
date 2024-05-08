@@ -90,7 +90,6 @@ export default function WizardPanel(props: any) {
         setCompleted({});
     };
 
-
     return (
         <div>
             <Box sx={{ width: '100%' }}>

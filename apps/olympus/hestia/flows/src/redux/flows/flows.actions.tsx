@@ -14,6 +14,7 @@ export interface FlowState {
         websiteScrape: boolean;
     };
     commandPrompts: {}
+    customStages: {},
     previewCount: number
     stageContactsMap: StageColMap;        // Added new field
     stagePromptMap: StagePromptMap;  // Added new field
@@ -27,6 +28,7 @@ export const initialState: FlowState = {
     promptHeaders: [],
     results: [],
     contactsCsvFilename: '',
+    customStages: {},
     stages: {
         linkedIn: false,
         linkedInBiz: false,
@@ -66,6 +68,7 @@ export interface FlowAction {
     promptsCsv: [];
     promptsCsvStr: string;
     stages: {};
+    customStages: {};
     contentContactsFieldMaps: {};
     commandPrompts: {};
     stagePromptMap: {};

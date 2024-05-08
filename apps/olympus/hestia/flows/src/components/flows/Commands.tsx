@@ -10,11 +10,14 @@ import {aiApiGateway} from "../../gateway/ai";
 import {useDispatch, useSelector} from "react-redux";
 import {setCommandPrompt} from "../../redux/flows/flows.reducer";
 import {RootState} from "../../redux/store";
+import {WorkflowTable} from "../ai/WorkflowTable";
+import Container from "@mui/material/Container";
 
 export function Commands(props: any) {
     const bodyPrompts = useSelector((state: any) => state.flows.promptsCsvContent);
     const stagePromptMap = useSelector((state: RootState) => state.flows.stagePromptMap);
     const stageContactsMap = useSelector((state: RootState) => state.flows.stageContactsMap);
+    const selected = useSelector((state: any) => state.ai.selectedWorkflows);
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
     const cmds = useSelector((state: any) => state.flows.commandPrompts);
     const previewCount = useSelector((state: any) => state.flows.previewCount);
@@ -128,6 +131,7 @@ export function Commands(props: any) {
                     validateEmails: vesChecked,
                     websiteScrape: webChecked
                 },
+                customStages: {},
                 previewCount: previewCount,
                 commandPrompts: cmds,
                 stageContactsMap: stageContactsMap,
@@ -229,6 +233,17 @@ export function Commands(props: any) {
                     {/*<Tab label="Google Search"/>*/}
                 </Tabs>
             </Box>
+            { selected && selected.length > 0  &&
+                <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+                    <Box sx={{ mb: 2 }}>
+                        <span>({selected.length} Selected Workflows)</span>
+                        <Button variant="outlined" color="secondary" onClick={(event) => onClickSubmit(previewCount)} style={{marginLeft: '10px'}}>
+                            Start { selected.length === 1 ? 'Workflow' : 'Workflows' }
+                        </Button>
+                    </Box>
+                </Container>
+            }
+            <WorkflowTable csvFilter={true}></WorkflowTable>
         </div>
     );
 }

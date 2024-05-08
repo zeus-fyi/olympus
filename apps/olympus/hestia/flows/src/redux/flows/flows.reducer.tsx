@@ -15,6 +15,10 @@ const flowsSlice = createSlice({
             state.uploadContentContacts = action.payload;
         },
         setCsvHeaders: (state, action: PayloadAction<string[]>) => {
+            state.stageContactsMap = {}
+            action.payload.forEach(header => {
+                state.stageContactsMap[header] = "Default";
+            });
             state.csvHeaders = action.payload;
         },
         setContactsCsvFilename: (state, action: PayloadAction<string>) => {

@@ -2,6 +2,7 @@ package zeus_v1_ai
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -231,5 +232,57 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity2(wfn, tn, retN string, ue
 		retN: artemis_orchestrations.RetrievalOverride{Payloads: pls},
 	}
 	w.WorkflowEntitiesOverrides[wfn] = append(w.WorkflowEntitiesOverrides[wfn], usre)
+	return err
+}
+
+func (w *ExecFlowsActionsRequest) createCsvMergeEntity4(wfn, tn, retN string, uef *artemis_entities.EntitiesFilter, colName string, emRow map[string][]int, pls []map[string]interface{}) error {
+	wsbLabel := csvGlobalMergeAnalysisTaskLabel(tn)
+	labels := artemis_entities.CreateMdLabels([]string{
+		fmt.Sprintf("wf:%s", wfn),
+		wsbLabel,
+	})
+	uef.Labels = append(uef.Labels, wsbLabel)
+	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal emRow")
+		return err
+	}
+	usre := artemis_entities.UserEntity{
+		Nickname: uef.Nickname,
+		Platform: uef.Platform,
+		MdSlice: []artemis_entities.UserEntityMetadata{
+			{
+
+				JsonData: b,
+				Labels:   labels,
+			},
+		},
+	}
+
+	var nps []map[string]interface{}
+	for _, pl := range pls {
+		prompts := w.getPromptsMap(googleSearch)
+		for _, pv := range prompts {
+			tmp := make(map[string]interface{})
+			for k, v := range pl {
+				tmp[k] = v
+			}
+			nv, _, nerr := ReplaceAndPassParams(pv, tmp)
+			if nerr != nil {
+				log.Err(nerr).Msg("failed to ReplaceAndPassParams")
+				return nerr
+			}
+			nmv := make(map[string]interface{})
+			nmv["q"] = url.QueryEscape(nv)
+			nps = append(nps, nmv)
+		}
+	}
+	w.WfRetrievalOverrides[wfn] = map[string]artemis_orchestrations.RetrievalOverride{
+		retN: artemis_orchestrations.RetrievalOverride{Payloads: nps},
+	}
+	w.WorkflowEntitiesOverrides[wfn] = append(w.WorkflowEntitiesOverrides[wfn], usre)
+	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
+		WorkflowName: wfn,
+	})
 	return err
 }

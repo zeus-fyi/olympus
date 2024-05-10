@@ -3,6 +3,7 @@ package zeus_v1_ai
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -24,8 +25,11 @@ const (
 	//webFetchWf        = "scraped-website-analysis-wf"
 	emailVdWf = "validate-emails-wf"
 	googWf    = "google-query-regex-index-wf"
-	liWf      = "linkedin-rapid-api-profiles-wf"
-	liBizWf   = "linkedin-rapid-api-biz-profiles-wf"
+
+	googCsvWf = "google-search-csv-wf"
+
+	liWf    = "linkedin-rapid-api-profiles-wf"
+	liBizWf = "linkedin-rapid-api-biz-profiles-wf"
 
 	// wf identifier stage
 	linkedIn       = "linkedIn"
@@ -42,9 +46,10 @@ const (
 	zenrowsScrapedWbsRet = "zenrows-website-analysis"
 	//scrapedWbsRet        = "scraped-website-analysis"
 	scrapedWbsRet = zenrowsScrapedWbsRet
-
+	googleRetName = "google-query-params"
 	// task
-	wbsTaskName = "website-analysis"
+	wbsTaskName    = "website-analysis"
+	googleTaskName = "google-search-analysis"
 
 	// work labels
 	csvSrcGlobalLabel      = "csv:global:source"
@@ -132,7 +137,6 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 		log.Err(err).Interface("w", w).Msg("ConvertToCsvStrToMap failed")
 		return nil, err
 	}
-
 	err = w.CustomCsvWorkflows(uef)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("CustomCsvWorkflows failed")
@@ -361,7 +365,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 					etm = append(etm, r)
 					emRow[colValue] = etm
 				}
-				if _, ok := seen[colValue]; ok {
+				if _, ok1 := seen[colValue]; ok1 {
 					continue
 				}
 				pl := make(map[string]interface{})
@@ -415,25 +419,90 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 	if v, ok := w.Stages[googleSearch]; !ok || !v {
 		return nil
 	}
-	//b, err := json.Marshal(w.ContactsCsv)
-	//if err != nil {
-	//	log.Err(err).Msg("failed to marshal gs")
-	//	return err
-	//}
-	if w.TaskOverrides == nil {
-		w.TaskOverrides = make(map[string]artemis_orchestrations.TaskOverride)
+	var colName string
+	//seen := make(map[string]bool)
+	prompts := w.getPrompts()
+	emRow := make(map[string][]int)
+	var pls []map[string]interface{}
+	for r, cvs := range w.ContactsCsv {
+		pl := make(map[string]interface{})
+		var colVal string
+		for cname, colValue := range cvs {
+			// "company",
+			if v, ok := w.StageContactsMap[cname]; ok && v == googleSearch {
+				//fmt.Println(r, v, colName, colValue, seen)
+				colVal = colValue
+				tnm := cname
+				if newVarName, ok1 := w.StageContactsOverrideMap[cname]; ok1 && len(newVarName) > 0 {
+					tnm = newVarName
+				}
+				w.ContactsCsv[r][cname] = colValue
+				// only for payload not override csv value
+				pl[tnm] = w.ContactsCsv[r][cname]
+				//seen[v] = true
+			}
+		}
+		if len(emRow) <= 0 {
+			emRow[colVal] = []int{r}
+		} else {
+			etm := emRow[colVal]
+			etm = append(etm, r)
+			emRow[colVal] = etm
+		}
+		pls = append(pls, pl)
 	}
-	//w.TaskOverrides["zeusfyi-verbatim"] = artemis_orchestrations.TaskOverride{ReplacePrompt: string(b)}
-	if v, ok := w.CommandPrompts[googleSearch]; ok && v != "" {
-		//if w.SchemaFieldOverrides == nil {
-		//	w.SchemaFieldOverrides = make(map[string]map[string]artemis_orchestrations.)
-		//	w.SchemaFieldOverrides["google-results-agg"] = map[string]string{
-		//		"summary": v,
-		//	}
-		//}
+	if len(pls) == 0 {
+		log.Warn().Msg("no profiles found")
+		return nil
 	}
-	w.Workflows = append(w.Workflows, artemis_orchestrations.WorkflowTemplate{
-		WorkflowName: googWf,
-	})
+	w.InitMaps()
+	err := w.createCsvMergeEntity4(googCsvWf, googleTaskName, googleRetName, uef, colName, emRow, pls)
+	if err != nil {
+		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
+		return err
+	}
+	if v, ok := w.CommandPrompts[googleSearch]; ok {
+		if len(prompts) <= 0 {
+			if v == "" {
+				v = "Can you tell me their role and responsibilities?"
+			}
+			prompts = []string{v}
+		} else {
+			tmp := w.TaskOverrides[googleTaskName]
+			tmp.SystemPromptExt = v
+			w.TaskOverrides[googleTaskName] = tmp
+		}
+		w.createWfTaskPromptOverrides(googCsvWf, googleTaskName, w.getPromptsMap(googleSearch))
+	}
 	return nil
+}
+
+// ReplaceAndPassParams replaces placeholders in the route with URL-encoded values from the provided map.
+func ReplaceAndPassParams(route string, params map[string]interface{}) (string, []string, error) {
+	// Compile a regular expression to find {param} patterns
+	re, err := regexp.Compile(`\{([^\{\}]+)\}`)
+	if err != nil {
+		log.Err(err).Msg("failed to compile regular expression")
+		return "", nil, err // Return an error if the regular expression compilation fails
+	}
+	var qps []string
+	// Replace each placeholder with the corresponding URL-encoded value from the map
+	replacedRoute := re.ReplaceAllStringFunc(route, func(match string) string {
+		// Extract the parameter name from the match, excluding the surrounding braces
+		paramName := match[1 : len(match)-1]
+		// Look up the paramName in the params map
+		if value, ok := params[paramName]; ok {
+			// Delete the matched entry from the map
+			if rs, rok := value.(string); rok {
+				qps = append(qps, rs)
+			}
+			delete(params, paramName)
+			// If the value exists, convert it to a string and URL-encode it
+			return fmt.Sprint(value)
+		}
+		// If no matching paramName is found in the map, return the match unchanged
+		return match
+	})
+
+	return replacedRoute, qps, nil
 }

@@ -1238,10 +1238,8 @@ function WorkflowEngineBuilder(props: any) {
             const prompt = (taskType === 'analysis' ? editAnalysisTask.prompt : editAggregateTask.prompt);
             if (prompt.length <= 0 && responseFormat != 'json') {
                 if (taskType === 'analysis') {
-                    setRequestAnalysisStatus('Analysis task prompt is empty')
                     setRequestAnalysisStatusError('error')
                 } else if (taskType === 'aggregation') {
-                    setRequestAggStatus('Aggregation task prompt is empty')
                     setRequestAggStatusError('error')
                 }
                 return;

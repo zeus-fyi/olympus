@@ -13,7 +13,7 @@ import Papa from "papaparse";
 export function CsvUploadActionAreaCard(props: any) {
     const dispatch = useDispatch();
     const contacts = useSelector((state: RootState) => state.flows.uploadContentContacts);
-
+    const [loading, setIsLoading] = React.useState(false);
     const onUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         const file = files?.item(0);
@@ -63,6 +63,7 @@ export function CsvUploadActionAreaCard(props: any) {
             console.error("Unsupported file type:", file.type);
         }
     };
+
     return (
         <div>
             <Card sx={{ maxWidth: 400 }}>

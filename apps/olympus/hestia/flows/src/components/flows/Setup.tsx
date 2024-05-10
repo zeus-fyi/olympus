@@ -69,6 +69,23 @@ export function SetupCard(props: any) {
                         />
                         <Typography variant="body1">Fetch Website</Typography>
                     </Stack>
+                    {/*<Box flexGrow={1} sx={{ mt: 0, ml: 2, mr: 2 }}>*/}
+                    {/*    <Select*/}
+                    {/*        fullWidth*/}
+                    {/*        value={stageContactsMap[header] || 'Default'}*/}
+                    {/*        label={header}*/}
+                    {/*        onChange={(event) => handleSelectChange(header, event.target.value as string)}*/}
+                    {/*        displayEmpty*/}
+                    {/*        variant="outlined"*/}
+                    {/*    >*/}
+                    {/*        <MenuItem value="Default">*/}
+                    {/*            <em>Default</em>*/}
+                    {/*        </MenuItem>*/}
+                    {/*        {stages && Object.keys(stages).map((flow, flowIndex) => (*/}
+                    {/*            <MenuItem key={flowIndex} value={flow}>{flow}</MenuItem>*/}
+                    {/*        ))}*/}
+                    {/*    </Select>*/}
+                    {/*</Box>*/}
                     <Stack direction="row" alignItems="center" spacing={2} sx={{ml: 2, mb: 2}}>
                         <TextField
                             label="Preview Count"

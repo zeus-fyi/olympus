@@ -55,15 +55,6 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			log.Err(err).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: ConvertWfStrIDs failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
-		for _, wfn := range w.Workflows {
-			switch wfn.WorkflowName {
-			case googWf, liWf, emailVdWf, webFetchWf, liBizWf:
-			//case liBizWf:
-			//	return c.JSON(http.StatusNotImplemented, nil)
-			default:
-				return c.JSON(http.StatusBadRequest, nil)
-			}
-		}
 		tmpOu := ou
 		tmpOu.OrgID = 1685378241971196000
 		resp, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), tmpOu, &window, w.Workflows)

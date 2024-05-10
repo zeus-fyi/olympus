@@ -13,8 +13,10 @@ export interface FlowState {
         validateEmails: boolean;
         websiteScrape: boolean;
     };
-    commandPrompts: {}
-    previewCount: number
+    commandPrompts: {};
+    customStages: {},
+    previewCount: number,
+    stageContactsOverrideMap: StageColMap;
     stageContactsMap: StageColMap;        // Added new field
     stagePromptMap: StagePromptMap;  // Added new field
 }
@@ -27,6 +29,7 @@ export const initialState: FlowState = {
     promptHeaders: [],
     results: [],
     contactsCsvFilename: '',
+    customStages: {},
     stages: {
         linkedIn: false,
         linkedInBiz: false,
@@ -41,6 +44,7 @@ export const initialState: FlowState = {
         websiteScrape: 'Can you tell me what the company does, and the industry they work in?'
     },
     stageContactsMap: {},
+    stageContactsOverrideMap: {},
     stagePromptMap: {},
     previewCount: 3,
 }
@@ -66,8 +70,8 @@ export interface FlowAction {
     promptsCsv: [];
     promptsCsvStr: string;
     stages: {};
-    contentContactsFieldMaps: {};
     commandPrompts: {};
     stagePromptMap: {};
     stageContactsMap:{};
+    stageContactsOverrideMap: {};
 }

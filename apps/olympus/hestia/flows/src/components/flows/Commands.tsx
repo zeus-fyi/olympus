@@ -10,11 +10,21 @@ import {aiApiGateway} from "../../gateway/ai";
 import {useDispatch, useSelector} from "react-redux";
 import {setCommandPrompt} from "../../redux/flows/flows.reducer";
 import {RootState} from "../../redux/store";
+import {WorkflowTable} from "../ai/WorkflowTable";
+import {Task, WorkflowTemplate} from "../../redux/ai/ai.types";
 
 export function Commands(props: any) {
+    let workflows = useSelector((state: any) => state.ai.workflows);
+    if (workflows) {
+        workflows = workflows.filter((workflow: WorkflowTemplate) => {
+            return workflow.tasks.some((task: Task) => task.responseFormat === 'csv');
+        })
+    }
     const bodyPrompts = useSelector((state: any) => state.flows.promptsCsvContent);
     const stagePromptMap = useSelector((state: RootState) => state.flows.stagePromptMap);
     const stageContactsMap = useSelector((state: RootState) => state.flows.stageContactsMap);
+    const stageContactsOverrideMap = useSelector((state: RootState) => state.flows.stageContactsOverrideMap);
+    const selected = useSelector((state: any) => state.ai.selectedWorkflows);
     const contacts = useSelector((state: any) => state.flows.uploadContentContacts);
     const cmds = useSelector((state: any) => state.flows.commandPrompts);
     const previewCount = useSelector((state: any) => state.flows.previewCount);
@@ -114,11 +124,25 @@ export function Commands(props: any) {
     const onClickSubmit = async (previewCount: number) => {
         try {
             setFlowsRequestStatus('pending');
+            let stages = {
+                    linkedIn: checked,
+                    linkedInBiz: checkedLi,
+                    googleSearch: gs,
+                    validateEmails: vesChecked,
+                    websiteScrape: webChecked
+                }
+            let selectedWorkflows = selected.map((index: number) => {
+                return workflows[index].workflowName
+            })
+
+            selectedWorkflows.forEach((workflowName: string) => {
+                stages[workflowName as keyof typeof stages] = true;
+            });
             const fa = {
                 contactsCsvFilename: contactCsvFilename,
                 contentContactsCsv: [] as [],
                 contentContactsCsvStr: objectArrayToCsv(contacts),
-                contentContactsFieldMaps: {},
+                stageContactsOverrideMap: stageContactsOverrideMap,
                 promptsCsv: [] as [],
                 promptsCsvStr: objectArrayToCsv(bodyPrompts),
                 stages: {
@@ -128,10 +152,14 @@ export function Commands(props: any) {
                     validateEmails: vesChecked,
                     websiteScrape: webChecked
                 },
+                customStages: {},
                 previewCount: previewCount,
                 commandPrompts: cmds,
                 stageContactsMap: stageContactsMap,
                 stagePromptMap: stagePromptMap,
+                workflows: selected.map((index: number) => {
+                    return workflows[index]
+                })
             };
             let res = await aiApiGateway.flowsRequest(fa);
             const statusCode = res.status;
@@ -229,6 +257,17 @@ export function Commands(props: any) {
                     {/*<Tab label="Google Search"/>*/}
                 </Tabs>
             </Box>
+            {/*{ selected && selected.length > 0  &&*/}
+            {/*    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>*/}
+            {/*        <Box sx={{ mb: 2 }}>*/}
+            {/*            <span>({selected.length} Selected Workflows)</span>*/}
+            {/*            <Button variant="outlined" color="secondary" onClick={(event) => onClickSubmit(previewCount)} style={{marginLeft: '10px'}}>*/}
+            {/*                Start { selected.length === 1 ? 'Workflow' : 'Workflows' }*/}
+            {/*            </Button>*/}
+            {/*        </Box>*/}
+            {/*    </Container>*/}
+            {/*}*/}
+            <WorkflowTable csvFilter={true}></WorkflowTable>
         </div>
     );
 }

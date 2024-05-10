@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect} from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -10,6 +11,9 @@ import {CsvUploadActionAreaCard} from "./Upload";
 import {AnalyzeActionAreaCard} from "./Analyze";
 import {Commands} from "./Commands";
 import {Results} from "./Results";
+import {aiApiGateway} from "../../gateway/ai";
+import {setWorkflows} from "../../redux/ai/ai.reducer";
+import {useDispatch} from "react-redux";
 
 const steps = [
     'Contacts',
@@ -39,7 +43,9 @@ function stepComponents(activeStep: number,
 
 export default function WizardPanel(props: any) {
     const {pageView, setPageView} = props;
+    const [loading, setIsLoading] = React.useState(false);
     const [activeStep, setActiveStep] = React.useState(0);
+    const dispatch = useDispatch()
     const [completed, setCompleted] = React.useState<{
         [k: number]: boolean;
     }>({});
@@ -90,7 +96,29 @@ export default function WizardPanel(props: any) {
         setCompleted({});
     };
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setIsLoading(true)
+                const response = await aiApiGateway.getWorkflowsRequest();
+                const statusCode = response.status;
+                if (statusCode < 400) {
+                    const data = response.data;
+                    dispatch(setWorkflows(data.workflows));
+                } else {
+                    console.log('Failed to get workflows', response);
+                }
+            } catch (e) {
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
 
+    if (loading) {
+        return <div>Loading...</div>
+    }
     return (
         <div>
             <Box sx={{ width: '100%' }}>

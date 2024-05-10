@@ -3,13 +3,26 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import {Card, MenuItem, Select, Stack} from "@mui/material";
 import Box from "@mui/material/Box";
-import {setContactsFlowMap, setPromptFlowMap} from "../../redux/flows/flows.reducer";
+import {setContactsFlowMap, setContactsOverrideFlowMap, setPromptFlowMap} from "../../redux/flows/flows.reducer";
+import {Task, WorkflowTemplate} from "../../redux/ai/ai.types";
 
 export function ContactsTextFieldRows(props: any) {
     const stages = useSelector((state: RootState) => state.flows.stages);
     const headers = useSelector((state: RootState) => state.flows.csvHeaders);
     const dispatch = useDispatch();
+    const stageContactsOverrideMap = useSelector((state: RootState) => state.flows.stageContactsOverrideMap);
     const stageContactsMap = useSelector((state: RootState) => state.flows.stageContactsMap);
+    // const selected = useSelector((state: any) => state.ai.selectedWorkflows);
+    let workflows = useSelector((state: any) => state.ai.workflows);
+    if (workflows) {
+        workflows = workflows.filter((workflow: WorkflowTemplate) => {
+            return workflow.tasks.some((task: Task) => task.responseFormat === 'csv');
+        })
+    }
+
+    const flowNames = workflows.map((workflow: WorkflowTemplate) => {
+        return workflow.workflowName
+    })
 
     const handleSelectChange = async (promptName: string, wfTaskName: string) => {
         const payload = {
@@ -17,6 +30,13 @@ export function ContactsTextFieldRows(props: any) {
             subKey: wfTaskName, // retrievalID
         };
         dispatch(setContactsFlowMap(payload));
+    }
+    const handleSelectChangeContactsOverrideFlowMap = async (promptName: string, wfTaskName: string) => {
+        const payload = {
+            key: promptName, // taskID
+            subKey: wfTaskName, // retrievalID
+        };
+        dispatch(setContactsOverrideFlowMap(payload));
     }
 
     return (
@@ -33,13 +53,15 @@ export function ContactsTextFieldRows(props: any) {
                                 variant="outlined"
                             />
                         </Box>
-                        {/*<Box flexGrow={1} sx={{ mt:0, ml: 2, mr: 2 }}>*/}
-                        {/*    <TextField*/}
-                        {/*        fullWidth*/}
-                        {/*        label={header}*/}
-                        {/*        variant="outlined"*/}
-                        {/*    />*/}
-                        {/*</Box>*/}
+                        <Box flexGrow={1} sx={{ mt:0, ml: 2, mr: 2 }}>
+                            <TextField
+                                fullWidth
+                                label={header}
+                                variant="outlined"
+                                value={header && stageContactsOverrideMap[header]}
+                                onChange={(event) => handleSelectChangeContactsOverrideFlowMap(header, event.target.value as string)}
+                            />
+                        </Box>
                         <Box flexGrow={1} sx={{ mt: 0, ml: 2, mr: 2 }}>
                             <Select
                                 fullWidth
@@ -54,6 +76,9 @@ export function ContactsTextFieldRows(props: any) {
                                 </MenuItem>
                                 {stages && Object.keys(stages).map((flow, flowIndex) => (
                                     <MenuItem key={flowIndex} value={flow}>{flow}</MenuItem>
+                                ))}
+                                {flowNames && flowNames.map((name: string, nameIndex: number) => (
+                                    <MenuItem key={`wf-${nameIndex}`} value={name}>{name}</MenuItem>
                                 ))}
                             </Select>
                         </Box>
@@ -70,7 +95,16 @@ export function PromptsTextFieldRows(props: any) {
     const stagePromptMap = useSelector((state: RootState) => state.flows.stagePromptMap);
     const dispatch = useDispatch();
     const headers = useSelector((state: RootState) => state.flows.promptHeaders);
+    let workflows = useSelector((state: any) => state.ai.workflows);
+    if (workflows) {
+        workflows = workflows.filter((workflow: WorkflowTemplate) => {
+            return workflow.tasks.some((task: Task) => task.responseFormat === 'csv');
+        })
+    }
 
+    const flowNames = workflows.map((workflow: WorkflowTemplate) => {
+        return workflow.workflowName
+    })
     const handleSelectChange = async (promptName: string, wfTaskName: string) => {
         const payload = {
             key: promptName, // taskID
@@ -114,6 +148,9 @@ export function PromptsTextFieldRows(props: any) {
                                 </MenuItem>
                                 {stages && Object.keys(stages).map((flow, flowIndex) => (
                                     <MenuItem key={flowIndex} value={flow}>{flow}</MenuItem>
+                                ))}
+                                {flowNames && flowNames.map((name: string, nameIndex: number) => (
+                                    <MenuItem key={`wf-${nameIndex}`} value={name}>{name}</MenuItem>
                                 ))}
                             </Select>
                         </Box>

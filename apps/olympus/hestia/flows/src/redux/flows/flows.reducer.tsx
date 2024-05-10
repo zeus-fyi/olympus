@@ -42,6 +42,10 @@ const flowsSlice = createSlice({
             const { key, subKey } = action.payload;
             state.stageContactsMap[key] = subKey;
         },
+        setContactsOverrideFlowMap: (state, action: PayloadAction<UpdateTaskRelationshipPayload>) => {
+            const { key, subKey } = action.payload;
+            state.stageContactsOverrideMap[key] = subKey;
+        },
         setResults: (state, action: PayloadAction<[]>) => {
             state.results = action.payload;
         },
@@ -67,6 +71,7 @@ export const {
     setPromptHeaders,
     setResults,
     setStages,
+    setContactsOverrideFlowMap,
     setCommandPrompt,
     setPreviewCount,
     setContactsCsvFilename,

@@ -202,3 +202,34 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity(wfn, tn, retN string, uef
 	})
 	return err
 }
+
+// createCsvMergeEntity is standardizing csv payload driven setups
+func (w *ExecFlowsActionsRequest) createCsvMergeEntity2(wfn, tn, retN string, uef *artemis_entities.EntitiesFilter, colName string, emRow map[string][]int, pls []map[string]interface{}) error {
+	wsbLabel := csvGlobalMergeAnalysisTaskLabel(tn)
+	labels := artemis_entities.CreateMdLabels([]string{
+		fmt.Sprintf("wf:%s", wfn),
+		wsbLabel,
+	})
+	uef.Labels = append(uef.Labels, wsbLabel)
+	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	if err != nil {
+		log.Err(err).Msg("failed to marshal emRow")
+		return err
+	}
+	usre := artemis_entities.UserEntity{
+		Nickname: uef.Nickname,
+		Platform: uef.Platform,
+		MdSlice: []artemis_entities.UserEntityMetadata{
+			{
+
+				JsonData: b,
+				Labels:   labels,
+			},
+		},
+	}
+	w.WfRetrievalOverrides[wfn] = map[string]artemis_orchestrations.RetrievalOverride{
+		retN: artemis_orchestrations.RetrievalOverride{Payloads: pls},
+	}
+	w.WorkflowEntitiesOverrides[wfn] = append(w.WorkflowEntitiesOverrides[wfn], usre)
+	return err
+}

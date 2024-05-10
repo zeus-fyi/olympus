@@ -51,6 +51,75 @@ const (
 	csvSrcGlobalMergeLabel = "csv:global:merge"
 )
 
+// note this requires being first to process, others add to workflow slice on add
+
+func (w *ExecFlowsActionsRequest) CustomCsvWorkflows(uef *artemis_entities.EntitiesFilter) error {
+	if len(w.Workflows) <= 0 {
+		return nil
+	}
+	for _, wfv := range w.Workflows {
+		var colName string
+		//seen := make(map[string]bool)
+		emRow := make(map[string][]int)
+		var pls []map[string]interface{}
+		for r, cvs := range w.ContactsCsv {
+			for cname, colValue := range cvs {
+				// "company",
+				if v, ok := w.StageContactsMap[cname]; ok && v == wfv.WorkflowName {
+					//fmt.Println(r, v, colName, colValue, seen)
+					tnm := cname
+					if newVarName, ok1 := w.StageContactsOverrideMap[cname]; ok1 && len(newVarName) > 0 {
+						tnm = newVarName
+					}
+					if len(emRow) <= 0 {
+						emRow[colValue] = []int{r}
+					} else {
+						etm := emRow[colValue]
+						etm = append(etm, r)
+						emRow[colValue] = etm
+					}
+					pl := make(map[string]interface{})
+					w.ContactsCsv[r][cname] = colValue
+					// only for payload not override csv value
+					pl[tnm] = w.ContactsCsv[r][cname]
+					pls = append(pls, pl)
+					//seen[v] = true
+				}
+			}
+		}
+		if len(pls) == 0 {
+			log.Warn().Msg("no profiles found")
+			return nil
+		}
+		w.InitMaps()
+		for _, tv := range wfv.Tasks {
+			if tv.ResponseFormat == "csv" && len(tv.TaskName) > 0 && len(tv.RetrievalName) > 0 {
+				err := w.createCsvMergeEntity2(wfv.WorkflowName, tv.TaskName, tv.RetrievalName, uef, colName, emRow, pls)
+				if err != nil {
+					log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
+					return err
+				}
+				if v, ok := w.CommandPrompts[wfv.WorkflowName]; ok || (len(tv.TaskName) > 0 && len(tv.RetrievalName) > 0) {
+					prompts := w.getPrompts()
+					if len(prompts) <= 0 {
+						if v == "" {
+							v = "Can you tell me their role and responsibilities?"
+						}
+						prompts = []string{v}
+					} else {
+						tmp := w.TaskOverrides[tv.TaskName]
+						tmp.SystemPromptExt = v
+						w.TaskOverrides[tv.TaskName] = tmp
+					}
+					w.createWfTaskPromptOverrides(wfv.WorkflowName, tv.TaskName, w.getPromptsMap(wfv.WorkflowName))
+					//w.createWfSchemaFieldOverride(liWf, wbsTaskName, "summary", prompts)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.OrgUser) (*artemis_entities.EntitiesFilter, error) {
 	uef := &artemis_entities.EntitiesFilter{
 		Platform: "flows",
@@ -60,7 +129,13 @@ func (w *ExecFlowsActionsRequest) SetupFlow(ctx context.Context, ou org_users.Or
 	w.InitMaps()
 	headersCsv, err := w.ConvertToCsvStrToMap()
 	if err != nil {
-		log.Err(err).Interface("w", w).Msg("EmailsValidatorSetup failed")
+		log.Err(err).Interface("w", w).Msg("ConvertToCsvStrToMap failed")
+		return nil, err
+	}
+
+	err = w.CustomCsvWorkflows(uef)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("CustomCsvWorkflows failed")
 		return nil, err
 	}
 	// this should add the email label

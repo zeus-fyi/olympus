@@ -216,6 +216,8 @@ func getSearchResults(chunk int, mb *MbChildSubProcessParams, in *WorkflowStageI
 		sr = sg.RegexSearchResults
 	} else if sg.ApiResponseResults != nil {
 		sr = sg.ApiResponseResults
+	} else if in.PromptReduction.PromptReductionSearchResults != nil && in.PromptReduction.PromptReductionSearchResults.InSearchGroup != nil {
+		sr = in.PromptReduction.PromptReductionSearchResults.InSearchGroup.ApiResponseResults
 	}
 	return sr
 }

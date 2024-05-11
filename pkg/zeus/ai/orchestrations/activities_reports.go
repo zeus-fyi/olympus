@@ -16,8 +16,8 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 	var sourceTaskIds []int
 
 	// for dbg
-	//gd := CsvIteratorDebug{cp}
-	//gd.Save()
+	gd := CsvIteratorDebug{cp}
+	gd.Save()
 
 	for _, wfi := range cp.WfExecParams.WorkflowTasks {
 		if wfi.AnalysisTaskID > 0 && wfi.AggTaskID == nil {

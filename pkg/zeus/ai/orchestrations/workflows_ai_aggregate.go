@@ -162,6 +162,9 @@ func getChunkIteratorLen(pr *PromptReduction) int {
 		log.Info().Interface("len(pr.PromptReductionText.OutPromptChunks)", len(pr.PromptReductionText.OutPromptChunks)).Msg("getChunkIteratorLen: PromptReductionText")
 		return len(pr.PromptReductionText.OutPromptChunks)
 	}
+	if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.InSearchGroup != nil {
+		return 1
+	}
 	return chunkIterator
 }
 

@@ -87,7 +87,7 @@ func mergeCsvs(source artemis_entities.UserEntity, mergeIn []artemis_entities.Us
 			}
 		}
 	}
-	merged, _, err := utils_csv.MergeCsvEntity(source, appendCsvEntry, cme)
+	merged, _, err := utils_csv.MergeCsvEntity(source, appendCsvEntry, cme, 0)
 	if err != nil {
 		log.Err(err).Msg("mergeCore")
 		return nil, err

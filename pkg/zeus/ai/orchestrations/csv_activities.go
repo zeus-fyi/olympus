@@ -49,7 +49,7 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 		}
 		for i, source := range gens {
 			tmp := source.MdSlice
-			for _, mi := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
+			for mind, mi := range cp.WfExecParams.WorkflowOverrides.WorkflowEntities {
 				for _, minv := range mi.MdSlice {
 					if minv.JsonData != nil && string(minv.JsonData) != "null" {
 						var cme utils_csv.CsvMergeEntity
@@ -60,9 +60,9 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 						}
 						cnT := cme.MergeColName
 						log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
-						cv := convEntityToCsvCol(cnT, payloadMaps, 0)
+						cv := convEntityToCsvCol(cnT, payloadMaps, mind)
 						//fmt.Println(cv)
-						_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme)
+						_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme, mind)
 						if merr != nil {
 							log.Err(merr).Msg("SaveCsvTaskOutput: MergeCsvEntity")
 							return 0, err

@@ -3,6 +3,7 @@ package utils_csv
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
@@ -39,7 +40,7 @@ func NewCsvMergeEntityFromSrcBin(colName string, emRow map[string][]int) ([]byte
 	return b, nil
 }
 
-func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[string]interface{}, cme CsvMergeEntity) ([]map[string]string, []string, error) {
+func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[string]interface{}, cme CsvMergeEntity, offset int) ([]map[string]string, []string, error) {
 	var mergedCsvStrs []string
 
 	if len(appendCsvEntry) == 0 {
@@ -82,20 +83,26 @@ func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[str
 			if err != nil {
 				return nil, nil, err
 			}
-			if cme.MergeColName == "" {
-				for _, qen := range appendCsvEntry {
-					for ik, iv := range qen {
-						if ik == "entity" {
-							continue
+			for _, mvs := range appendCsvEntry {
+				kv := mvs[cme.MergeColName]
+				if kv == nil {
+					tmp := "entity"
+					if offset > 0 {
+						tmp = fmt.Sprintf("%s_%d", tmp, offset)
+					}
+					kv = mvs[tmp]
+					delete(mvs, tmp)
+				} else {
+					delete(mvs, cme.MergeColName)
+				}
+				if kvs, ok := kv.(string); ok {
+					vr := cme.Rows[kvs]
+					for ink, inkv := range mvs {
+						if offset > 0 {
+							ink = strings.TrimSuffix(ink, fmt.Sprintf("_%d", offset))
 						}
-						if ev, okv := qen["entity"]; okv {
-							a, oka := ev.(string)
-							if oka {
-								rvn := cme.Rows[a]
-								for _, irnv := range rvn {
-									csvMap[irnv][ik] = fmt.Sprintf("%v", iv)
-								}
-							}
+						for _, rrval := range vr {
+							csvMap[rrval][ink] = fmt.Sprintf("%v", inkv)
 						}
 					}
 				}
@@ -134,23 +141,12 @@ func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[str
 
 func AppendCsvData(inputCsvData, csvData []map[string]string, colName string, emRow map[string][]int) ([]map[string]string, error) {
 	// Iterate through csvData to find and merge matching rows
-	skip := false
 	for _, dataRow := range csvData {
-		if colName == "" {
-			colName = "entity"
-			skip = true
-		}
 		email := dataRow[colName]
 		if indices, ok := emRow[email]; ok {
 			// If a matching row is found, merge the data
 			for _, index := range indices {
 				for key, value := range dataRow {
-					if key == "entity" && skip {
-						continue
-					}
-					if value == "" || key == "" {
-						continue
-					}
 					inputCsvData[index][key] = value
 				}
 			}

@@ -129,7 +129,7 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 					log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
 					cv := convEntityToCsvCol(cnT, payloadMaps, mind)
 					//fmt.Println(mind, cv)
-					_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme)
+					_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme, mind)
 					if merr != nil {
 						log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
 						return err

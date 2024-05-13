@@ -173,6 +173,9 @@ func convEntityToCsvCol(cn string, plms []map[string]interface{}, offset int) []
 	if offset > 0 {
 		ens = fmt.Sprintf("%s_%d", ens, offset)
 	}
+	if cn == "" {
+		cn = ens
+	}
 	for i, pl := range plms {
 		if v, ok := pl[ens]; ok {
 			delete(pl, ens)

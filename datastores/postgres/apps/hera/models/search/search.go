@@ -181,6 +181,7 @@ type SearchResult struct {
 	TwitterMetadata *TwitterMetadata `json:"twitterMetadata,omitempty"`
 	WebResponse     WebResponse      `json:"webResponses,omitempty"`
 	//CsvMetadata     *CsvMetadata                  `json:"csvMetadata,omitempty"`
+	PromptKey    string                        `json:"promptKey,omitempty"`
 	UserEntities []artemis_entities.UserEntity `json:"userEntity,omitempty"`
 }
 

@@ -153,10 +153,14 @@ func getJsonSgChunkToProcess2(chunk int, mb *MbChildSubProcessParams, in *Workfl
 		}
 	} else if pr.PromptReductionSearchResults != nil && pr.PromptReductionSearchResults.OutSearchGroups != nil && mb.Wsr.ChunkOffset < len(pr.PromptReductionSearchResults.OutSearchGroups) {
 		sg = pr.PromptReductionSearchResults.OutSearchGroups[chunk]
-	} else {
+	} else if pr.PromptReductionText.OutPromptChunks != nil {
 		sg = &hera_search.SearchResultGroup{
 			BodyPrompt:    pr.PromptReductionText.OutPromptChunks[chunk],
 			SearchResults: []hera_search.SearchResult{},
+		}
+	} else if pr.PromptReductionSearchResults.InSearchGroup != nil {
+		sg = &hera_search.SearchResultGroup{
+			SearchResults: pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults,
 		}
 	}
 	return sg

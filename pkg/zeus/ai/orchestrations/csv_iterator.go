@@ -49,6 +49,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 }
 
 func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *WorkflowStageIO, prms map[string]string, seen map[int]map[int]bool) error {
+	// needs to get correct prompt mapped search
 	sr := getSearchResults(chunk, mb, in)
 	var keys []string
 	for key := range prms {
@@ -61,6 +62,9 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 		}
 		taskInstPrompt := prms[colName]
 		for _, v := range sr {
+			if len(v.PromptKey) > 0 && v.PromptKey != colName {
+				continue
+			}
 			if !validPromptContent(ctx, v.Value) {
 				continue
 			}

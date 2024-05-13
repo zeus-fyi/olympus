@@ -25,7 +25,16 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		orgRouteExt = *cp.Tc.Retrieval.WebFilters.EndpointRoutePath
 		routeExt = orgRouteExt
 	}
+	var promptKey string
 	if r.RouteInfo.Payload != nil {
+		if cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+			if v, ok := r.RouteInfo.Payload["msg_key"]; ok {
+				tmpv, ok1 := v.(string)
+				if ok1 {
+					promptKey = tmpv
+				}
+			}
+		}
 		rp, qps, err := ReplaceAndPassParams(routeExt, r.RouteInfo.Payload)
 		if err != nil {
 			log.Err(err).Msg("ApiCallRequestTask: failed to replace route path params")
@@ -97,6 +106,7 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		QueryParams: r.Qps,
 		Group:       rg,
 		WebResponse: wr,
+		PromptKey:   promptKey,
 	}
 	sg := &hera_search.SearchResultGroup{
 		PlatformName:  cp.Tc.Retrieval.RetrievalPlatform,

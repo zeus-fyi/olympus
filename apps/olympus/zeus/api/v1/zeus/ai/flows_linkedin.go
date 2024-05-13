@@ -262,7 +262,7 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity4(wfn, tn, retN string, ue
 	var nps []map[string]interface{}
 	for _, pl := range pls {
 		prompts := w.getPromptsMap(googleSearch)
-		for _, pv := range prompts {
+		for pk, pv := range prompts {
 			tmp := make(map[string]interface{})
 			for k, v := range pl {
 				tmp[k] = v
@@ -274,6 +274,7 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity4(wfn, tn, retN string, ue
 			}
 			nmv := make(map[string]interface{})
 			nmv["q"] = url.QueryEscape(nv)
+			nmv["msg_key"] = pk
 			nps = append(nps, nmv)
 		}
 	}

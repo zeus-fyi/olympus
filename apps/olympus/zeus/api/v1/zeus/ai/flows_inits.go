@@ -390,7 +390,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		emLabel,
 	})
 	uef.Labels = append(uef.Labels, emLabel)
-	b, err := utils_csv.NewCsvMergeEntityFromSrcBin("Email", emRow)
+	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
 	if err != nil {
 		log.Err(err).Msg("failed to marshal emRow")
 		return err

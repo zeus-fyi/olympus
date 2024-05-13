@@ -390,7 +390,7 @@ func (w *ExecFlowsActionsRequest) EmailsValidatorSetup(uef *artemis_entities.Ent
 		emLabel,
 	})
 	uef.Labels = append(uef.Labels, emLabel)
-	b, err := utils_csv.NewCsvMergeEntityFromSrcBin(colName, emRow)
+	b, err := utils_csv.NewCsvMergeEntityFromSrcBin("Email", emRow)
 	if err != nil {
 		log.Err(err).Msg("failed to marshal emRow")
 		return err
@@ -420,7 +420,6 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 	if v, ok := w.Stages[googleSearch]; !ok || !v {
 		return nil
 	}
-	var colName string
 	//seen := make(map[string]bool)
 	prompts := w.getPrompts()
 	emRow := make(map[string][]int)
@@ -472,7 +471,7 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity4(googCsvWf, googleTaskName, googleRetName, uef, colName, emRow, pls)
+	err := w.createCsvMergeEntity4(googCsvWf, googleTaskName, googleRetName, uef, googleSearch, emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err

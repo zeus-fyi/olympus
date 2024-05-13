@@ -444,7 +444,7 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 		}
 		fmt.Println(colVal)
 		promptsMap := w.getPromptsMap(googleSearch)
-		for pk, pv := range promptsMap {
+		for _, pv := range promptsMap {
 			tmp := make(map[string]interface{})
 			for k, v := range pl {
 				tmp[k] = v
@@ -455,7 +455,6 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 				return nerr
 			}
 			nv = url.QueryEscape(nv)
-			w.ContactsCsv[r][pk] = nv
 			if len(emRow) <= 0 {
 				emRow[nv] = []int{r}
 			} else {
@@ -471,7 +470,7 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity4(googCsvWf, googleTaskName, googleRetName, uef, googleSearch, emRow, pls)
+	err := w.createCsvMergeEntity4(googCsvWf, googleTaskName, googleRetName, uef, "", emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err

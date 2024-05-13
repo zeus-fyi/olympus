@@ -2,6 +2,8 @@ package utils_csv
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
@@ -38,7 +40,7 @@ func NewCsvMergeEntityFromSrcBin(colName string, emRow map[string][]int) ([]byte
 	return b, nil
 }
 
-func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[string]interface{}, cme CsvMergeEntity) ([]map[string]string, []string, error) {
+func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[string]interface{}, cme CsvMergeEntity, offset int) ([]map[string]string, []string, error) {
 	var mergedCsvStrs []string
 
 	if len(appendCsvEntry) == 0 {
@@ -80,6 +82,30 @@ func MergeCsvEntity(source artemis_entities.UserEntity, appendCsvEntry []map[str
 			csvMap, err := ParseCsvStringToMap(*v.TextData)
 			if err != nil {
 				return nil, nil, err
+			}
+			for _, mvs := range appendCsvEntry {
+				kv := mvs[cme.MergeColName]
+				if kv == nil {
+					tmp := "entity"
+					if offset > 0 {
+						tmp = fmt.Sprintf("%s_%d", tmp, offset)
+					}
+					kv = mvs[tmp]
+					delete(mvs, tmp)
+				} else {
+					delete(mvs, cme.MergeColName)
+				}
+				if kvs, ok := kv.(string); ok {
+					vr := cme.Rows[kvs]
+					for ink, inkv := range mvs {
+						if offset > 0 {
+							ink = strings.TrimSuffix(ink, fmt.Sprintf("_%d", offset))
+						}
+						for _, rrval := range vr {
+							csvMap[rrval][ink] = fmt.Sprintf("%v", inkv)
+						}
+					}
+				}
 			}
 			pscsv, perr := PayloadV2ToCsvString(appendCsvEntry)
 			if perr != nil {

@@ -3,6 +3,7 @@ package zeus_v1_ai
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -442,12 +443,27 @@ func (w *ExecFlowsActionsRequest) GoogleSearchSetup(uef *artemis_entities.Entiti
 				//seen[v] = true
 			}
 		}
-		if len(emRow) <= 0 {
-			emRow[colVal] = []int{r}
-		} else {
-			etm := emRow[colVal]
-			etm = append(etm, r)
-			emRow[colVal] = etm
+		fmt.Println(colVal)
+		promptsMap := w.getPromptsMap(googleSearch)
+		for pk, pv := range promptsMap {
+			tmp := make(map[string]interface{})
+			for k, v := range pl {
+				tmp[k] = v
+			}
+			nv, _, nerr := ReplaceAndPassParams(pv, tmp)
+			if nerr != nil {
+				log.Err(nerr).Msg("failed to ReplaceAndPassParams")
+				return nerr
+			}
+			nv = url.QueryEscape(nv)
+			w.ContactsCsv[r][pk] = nv
+			if len(emRow) <= 0 {
+				emRow[nv] = []int{r}
+			} else {
+				etm := emRow[nv]
+				etm = append(etm, r)
+				emRow[nv] = etm
+			}
 		}
 		pls = append(pls, pl)
 	}

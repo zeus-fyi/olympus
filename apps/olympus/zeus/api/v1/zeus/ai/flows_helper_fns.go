@@ -71,6 +71,12 @@ func (w *ExecFlowsActionsRequest) TestCsvParser() error {
 }
 
 func (w *ExecFlowsActionsRequest) InitMaps() {
+	tmp := make(map[string]string)
+	for k, v := range w.StagePromptMap {
+		tmp[strings.TrimSpace(k)] = strings.TrimSpace(v)
+	}
+	w.StagePromptMap = tmp
+
 	if w.WorkflowEntitiesOverrides == nil {
 		w.WorkflowEntitiesOverrides = make(map[string][]artemis_entities.UserEntity)
 	}
@@ -86,8 +92,8 @@ func (w *ExecFlowsActionsRequest) InitMaps() {
 	}
 	// wf level
 	if w.WfRetrievalOverrides == nil {
-		tmp := make(map[string]artemis_orchestrations.RetrievalOverrides)
-		w.WfRetrievalOverrides = tmp
+		tmp1 := make(map[string]artemis_orchestrations.RetrievalOverrides)
+		w.WfRetrievalOverrides = tmp1
 	}
 	if w.WfSchemaFieldOverrides == nil {
 		w.WfSchemaFieldOverrides = make(map[string]artemis_orchestrations.SchemaOverrides)
@@ -136,6 +142,10 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() ([]string, error) {
 			cv = cv[:w.PreviewCount]
 		}
 		tm, err := utils_csv.PayloadToCsvString(cv)
+		if err != nil {
+			log.Err(err).Msg("SaveCsvImports: ContactsCsvStr: error")
+			return nil, err
+		}
 		w.ContactsCsvStr = tm
 		w.ContactsCsv = cv
 	}
@@ -145,6 +155,19 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() ([]string, error) {
 			log.Err(err).Msg("SaveCsvImports: PromptsCsvStr: error")
 			return nil, err
 		}
+		for r, mv := range pcv {
+			tmp := make(map[string]string)
+			for k, v := range mv {
+				tmp[strings.TrimSpace(k)] = strings.TrimSpace(v)
+			}
+			pcv[r] = tmp
+		}
+		tm, err := utils_csv.PayloadToCsvString(pcv)
+		if err != nil {
+			log.Err(err).Msg("SaveCsvImports: ContactsCsvStr: error")
+			return nil, err
+		}
+		w.PromptsCsvStr = tm
 		w.PromptsCsv = pcv
 	}
 	return headersCsv, nil

@@ -258,7 +258,6 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity4(wfn, tn, retN string, ue
 			},
 		},
 	}
-
 	var nps []map[string]interface{}
 	for _, pl := range pls {
 		prompts := w.getPromptsMap(googleSearch)

@@ -48,8 +48,11 @@ func s3wsCustomTaskName(ctx context.Context, cp *MbChildSubProcessParams, taskNa
 		log.Warn().Msg("s3ws: at least cp or input is nil or empty")
 		return fmt.Errorf("must have input to save s3 obj")
 	}
+
 	sn := cp.Tc.TaskName
 	cp.Tc.TaskName = taskName
+
+	log.Info().Str("taskName", taskName).Msg("s3wsCustomTaskName")
 	if err := errCheckStagedWfs(ctx, cp); err != nil {
 		return err
 	}

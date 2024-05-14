@@ -40,6 +40,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 	}
 	log.Info().Interface("sm", sm).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Msg("CsvIterator")
 	prov := getPrompts(mb)
+	log.Info().Interface("prov", prov).Msg("CsvIterator")
 	for i := 0; i < mb.Tc.ChunkIterator; i++ {
 		err := iterResp(ctx, i, mb, in, prov, sm)
 		if err != nil {
@@ -68,9 +69,11 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 		taskInstPrompt := prms[colName]
 		for _, v := range sr {
 			if len(v.PromptKey) > 0 && v.PromptKey != colName {
+				log.Warn().Interface("v.PromptKey", v.PromptKey).Interface("colName", colName).Msg("CsvIterator")
 				continue
 			}
 			if !validPromptContent(ctx, v.Value) {
+				log.Warn().Interface("v.Value", v.Value).Msg("CsvIterator")
 				continue
 			}
 			na := NewZeusAiPlatformActivities()
@@ -79,6 +82,7 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 				log.Err(err).Msg("CsvIterator: iterResp failed")
 				return err
 			}
+			log.Info().Str(fmt.Sprintf("iterate-%s-%d", colName, offsetInd), fmt.Sprintf("iterate-%s-%d", colName, offsetInd)).Msg("CsvIterator")
 			activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%s-%d", colName, offsetInd))
 			err = saveCsvResp(ctx, colName, chunk, offsetInd, mb, cr, v)
 			if err != nil {

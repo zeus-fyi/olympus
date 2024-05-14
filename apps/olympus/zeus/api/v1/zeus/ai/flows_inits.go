@@ -124,7 +124,9 @@ func (w *ExecFlowsActionsRequest) CustomCsvWorkflows(uef *artemis_entities.Entit
 				}
 			}
 		}
+		w.CustomWorkflows = append(w.CustomWorkflows, wfv)
 	}
+	w.Workflows = nil
 	return nil
 }
 

@@ -30,6 +30,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 		log.Err(serr).Msg("CsvIterator: SelectAiWorkflowAnalysisResultsIds failed")
 		return serr
 	}
+	log.Info().Interface("len(sv)", len(sv)).Msg("CsvIterator")
 	sm := make(map[int]map[int]bool)
 	for _, vi := range sv {
 		if _, ok := sm[vi.ChunkOffset]; !ok {
@@ -37,6 +38,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 		}
 		sm[vi.ChunkOffset][vi.IterationCount] = true
 	}
+	log.Info().Interface("sm", sm).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Msg("CsvIterator")
 	prov := getPrompts(mb)
 	for i := 0; i < mb.Tc.ChunkIterator; i++ {
 		err := iterResp(ctx, i, mb, in, prov, sm)
@@ -52,6 +54,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *WorkflowStageIO, prms map[string]string, seen map[int]map[int]bool) error {
 	// needs to get correct prompt mapped search
 	sr := getSearchResults(chunk, mb, in)
+	log.Info().Interface("len(sr)", len(sr)).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Msg("CsvIterator")
 	var keys []string
 	for key := range prms {
 		keys = append(keys, key)

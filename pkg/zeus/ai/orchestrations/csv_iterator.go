@@ -43,11 +43,11 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 		}
 		sm[vi.ChunkOffset][vi.IterationCount] = true
 	}
-	log.Info().Interface("sm", sm).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Msg("CsvIterator")
+	log.Info().Interface("sm", sm).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Interface("mb.Tc.TaskOffset", mb.Tc.TaskOffset).Msg("CsvIterator")
 	prov := getPrompts(mb)
 	log.Info().Interface("prov", prov).Msg("CsvIterator")
 	for i := 0; i < mb.Tc.ChunkIterator; i++ {
-		log.Info().Interface("i", i).Msg("CsvIterator")
+		log.Info().Interface("i", i).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Interface("mb.Tc.TaskOffset", mb.Tc.TaskOffset).Msg("CsvIterator")
 		err := iterResp(ctx, i, mb, in, prov, sm)
 		if err != nil {
 			log.Err(err).Msg("CsvIterator: gws failed")

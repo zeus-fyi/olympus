@@ -68,7 +68,10 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 	}
 	log.Info().Interface("keys", keys).Msg("iterResp")
 	sort.Strings(keys)
+	count := 0
 	for offsetInd, colName := range keys {
+		log.Info().Int("count", count).Msg("CsvIterator")
+		count += 1
 		if tv, ok := seen[chunk][offsetInd]; ok && tv {
 			continue
 		}

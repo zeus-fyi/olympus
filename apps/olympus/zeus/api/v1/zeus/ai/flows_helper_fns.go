@@ -156,6 +156,18 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() ([]string, error) {
 			log.Err(err).Msg("SaveCsvImports: PromptsCsvStr: error")
 			return nil, err
 		}
+		var tslice []map[string]string
+		for _, vi := range pcv {
+			for k, v := range vi {
+				if v == "" {
+					delete(vi, k)
+				}
+			}
+			if len(vi) > 0 {
+				tslice = append(tslice, vi)
+			}
+		}
+		pcv = tslice
 		for r, mv := range pcv {
 			tmp := make(map[string]string)
 			for k, v := range mv {

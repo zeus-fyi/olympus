@@ -59,6 +59,7 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 	for key := range prms {
 		keys = append(keys, key)
 	}
+	log.Info().Interface("keys", keys).Msg("iterResp")
 	sort.Strings(keys)
 	for offsetInd, colName := range keys {
 		if tv, ok := seen[chunk][offsetInd]; ok && tv {
@@ -90,6 +91,7 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 }
 
 func saveCsvResp(ctx context.Context, colName string, chunk, offsetInd int, mb *MbChildSubProcessParams, cr *ChatCompletionQueryResponse, v hera_search.SearchResult) error {
+	log.Info().Msg("saveCsvResp")
 	m := getCsvResp(colName, cr)
 	if m == nil {
 		log.Warn().Msg("saveCsvResp nil m")

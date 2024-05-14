@@ -168,6 +168,30 @@ func S3WfRunImports(ctx context.Context, ou org_users.OrgUser, wfRunName string,
 	return ue, err
 }
 
+func S3WfRunUploadDebug(ctx context.Context, wfRunName string, payload any) error {
+	if err := s3SetupCheck(ctx); err != nil {
+		return err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/debug/runs/%s", wfRunName),
+		DirOut: fmt.Sprintf("/debug/runs/%s", wfRunName),
+		FnIn:   fmt.Sprintf("%s.json", wfRunName),
+		FnOut:  fmt.Sprintf("%s.json", wfRunName),
+	}
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("S3WfRunImports")
+	b, err := json.Marshal(payload)
+	if err != nil {
+		log.Err(err).Interface("payload", payload).Msg("s3globalWf: failed to upload wsr io")
+		return err
+	}
+	err = uploadFromInMemFs(ctx, b, p)
+	if err != nil {
+		log.Err(err).Interface("payload", payload).Msg("failed to upload")
+		return err
+	}
+	return err
+}
+
 func uploadFromInMemFs(ctx context.Context, b []byte, p *filepaths.Path) error {
 	mfs := memfs.NewMemFs()
 	err := mfs.MakeFileIn(p, b)

@@ -18,6 +18,11 @@ import (
 )
 
 func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildSubProcessParams) error {
+	zerr := S3WfRunUploadDebug(ctx, mb.GetRunName(), mb)
+	if zerr != nil {
+		log.Err(zerr).Msg("CsvIterator: SelectAiWorkflowAnalysisResultsIds failed")
+		return zerr
+	}
 	in, gerr := gs3wfs(ctx, mb)
 	if gerr != nil {
 		log.Err(gerr).Msg("CsvIterator: gws failed")

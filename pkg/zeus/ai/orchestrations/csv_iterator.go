@@ -75,6 +75,7 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 				log.Err(err).Msg("CsvIterator: iterResp failed")
 				return err
 			}
+			activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%s-%d", colName, offsetInd))
 			err = saveCsvResp(ctx, colName, chunk, offsetInd, mb, cr, v)
 			if err != nil {
 				log.Err(err).Msg("CsvIterator: saveCsvResp failed")

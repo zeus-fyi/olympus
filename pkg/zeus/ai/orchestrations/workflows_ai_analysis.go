@@ -114,7 +114,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				}
 			case csvFormat:
 				aofoa := ao
-				aofoa.HeartbeatTimeout = 5 * time.Minute
+				aofoa.HeartbeatTimeout = 15 * time.Minute
 				analysisCsvCompCtx := workflow.WithActivityOptions(ctx, aofoa)
 				cp.Tc.TaskOffset = ti
 				cp.Tc.TaskName = analysisInst.AnalysisTaskName

@@ -42,6 +42,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 	prov := getPrompts(mb)
 	log.Info().Interface("prov", prov).Msg("CsvIterator")
 	for i := 0; i < mb.Tc.ChunkIterator; i++ {
+		log.Info().Interface("i", i).Msg("CsvIterator")
 		err := iterResp(ctx, i, mb, in, prov, sm)
 		if err != nil {
 			log.Err(err).Msg("CsvIterator: gws failed")
@@ -66,6 +67,7 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 		if tv, ok := seen[chunk][offsetInd]; ok && tv {
 			continue
 		}
+		log.Info().Interface("offsetInd", offsetInd).Interface("colName", colName).Msg("CsvIterator")
 		taskInstPrompt := prms[colName]
 		for _, v := range sr {
 			if len(v.PromptKey) > 0 && v.PromptKey != colName {

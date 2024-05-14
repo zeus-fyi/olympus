@@ -125,11 +125,9 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 						continue
 					}
 					// {"MergeColName":"Email","Rows":{"alex@zeus.fyi":[0,2],"leevar@gmail.com":[1,3]}}
-					cnT := cme.MergeColName
 					log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
-					cv := convEntityToCsvCol(cnT, payloadMaps, mind)
 					//fmt.Println(mind, cv)
-					_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme, mind)
+					_, ms, merr := utils_csv.MergeCsvEntity(source, payloadMaps, cme, mind)
 					if merr != nil {
 						log.Err(merr).Msg("GenerateCycleReports: MergeCsvEntity")
 						return err
@@ -165,25 +163,6 @@ func (z *ZeusAiPlatformActivities) GenerateCycleReports(ctx context.Context, cp 
 		//fmt.Println(tmp)
 	}
 	return nil
-}
-
-func convEntityToCsvCol(cn string, plms []map[string]interface{}, offset int) []map[string]interface{} {
-	//m := make(map[string]interface{})
-	ens := "entity"
-	if offset > 0 {
-		ens = fmt.Sprintf("%s_%d", ens, offset)
-	}
-	if cn == "" {
-		cn = ens
-	}
-	for i, pl := range plms {
-		if v, ok := pl[ens]; ok {
-			delete(pl, ens)
-			pl[cn] = v
-			plms[i] = pl
-		}
-	}
-	return mergeMaps(plms, cn)
 }
 
 func mergeMaps(plms []map[string]interface{}, uniqueKey string) []map[string]interface{} {

@@ -106,7 +106,8 @@ func (w *ExecFlowsActionsRequest) getPromptsMap(stage string) map[string]string 
 		for cn, colValue := range cvs {
 			v, ok := w.StagePromptMap[cn]
 			if ok && (v == stage || strings.ToLower(v) == "default") {
-				prompts[cn] = colValue
+				cnStage := fmt.Sprintf("%s_%s", stage, cn)
+				prompts[cnStage] = colValue
 			}
 		}
 	}

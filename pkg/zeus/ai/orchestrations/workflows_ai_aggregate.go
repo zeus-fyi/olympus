@@ -62,12 +62,14 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 				childAnalysisWorkflowOptions := workflow.ChildWorkflowOptions{WorkflowID: oj.OrchestrationName + "-agg-json-task-" + strconv.Itoa(i), WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize, RetryPolicy: ao.RetryPolicy}
 				childAggWfCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
+				cp.Tc.TaskName = aws.StringValue(aggInst.AggTaskName)
 				err = workflow.ExecuteChildWorkflow(childAggWfCtx, z.JsonOutputTaskWorkflow, cp).Get(childAggWfCtx, &cp)
 				if err != nil {
 					logger.Error("failed to execute json agg workflow", "Error", err)
 					return err
 				}
 			case csvFormat:
+				cp.Tc.TaskName = aws.StringValue(aggInst.AggTaskName)
 				aofoa := ao
 				aofoa.HeartbeatTimeout = 5 * time.Minute
 				aggCompCtx := workflow.WithActivityOptions(ctx, aofoa)
@@ -78,6 +80,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAggAnalysisProcessWorkflow(ct
 					return err
 				}
 			case ingestData:
+				cp.Tc.TaskName = aws.StringValue(aggInst.AggTaskName)
 				aofoa := ao
 				aofoa.HeartbeatTimeout = 10 * time.Minute
 				aggCompCtx := workflow.WithActivityOptions(ctx, aofoa)

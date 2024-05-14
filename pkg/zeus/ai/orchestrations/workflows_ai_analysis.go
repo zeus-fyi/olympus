@@ -104,6 +104,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 					WorkflowExecutionTimeout: wfExecParams.WorkflowExecTimekeepingParams.TimeStepSize,
 					RetryPolicy:              ao.RetryPolicy,
 				}
+				cp.Tc.TaskName = analysisInst.AnalysisTaskName
 				cp.Wsr.ChildWfID = childAnalysisWorkflowOptions.WorkflowID
 				childAnalysisCtx := workflow.WithChildOptions(ctx, childAnalysisWorkflowOptions)
 				err = workflow.ExecuteChildWorkflow(childAnalysisCtx, z.JsonOutputTaskWorkflow, cp).Get(childAnalysisCtx, &cp)
@@ -116,6 +117,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 				aofoa.HeartbeatTimeout = 5 * time.Minute
 				analysisCsvCompCtx := workflow.WithActivityOptions(ctx, aofoa)
 				cp.Tc.TaskOffset = ti
+				cp.Tc.TaskName = analysisInst.AnalysisTaskName
 				err = workflow.ExecuteActivity(analysisCsvCompCtx, z.CsvIterator, cp).Get(analysisCsvCompCtx, nil)
 				if err != nil {
 					logger.Error("failed to save analysis csv response", "Error", err)
@@ -139,6 +141,7 @@ func (z *ZeusAiPlatformServiceWorkflows) RunAiChildAnalysisProcessWorkflow(ctx w
 			default:
 				var aiResp *ChatCompletionQueryResponse
 				aofoa := ao
+				cp.Tc.TaskName = analysisInst.AnalysisTaskName
 				aofoa.HeartbeatTimeout = 5 * time.Minute
 				analysisCtx := workflow.WithActivityOptions(ctx, aofoa)
 				err = workflow.ExecuteActivity(analysisCtx, z.AiAnalysisTask, analysisInst, cp).Get(analysisCtx, &aiResp)

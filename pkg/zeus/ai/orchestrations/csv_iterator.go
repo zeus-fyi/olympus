@@ -23,6 +23,7 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 		log.Err(gerr).Msg("CsvIterator: gws failed")
 		return gerr
 	}
+	log.Info().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("mb.Tc.TaskName)")
 	log.Info().Interface("mb.Tc.TaskOffset", mb.Tc.TaskOffset).Msg("mb.Tc.TaskOffset)")
 	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID}, mb.Tc.TaskOffset)
 	if serr != nil {
@@ -206,11 +207,11 @@ func (z *ZeusAiPlatformActivities) CsvAnalysisTask(ctx context.Context, ou org_u
 }
 
 func getPrompts(mb *MbChildSubProcessParams) map[string]string {
-	tmp := mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides
-	for _, mp := range tmp {
-		return mp.ReplacePrompts
+	if len(mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides) == 0 {
+		return nil
 	}
-	return nil
+	tmp := mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides[mb.Tc.TaskName]
+	return tmp.ReplacePrompts
 }
 
 func getSearchResults(chunk int, mb *MbChildSubProcessParams, in *WorkflowStageIO) []hera_search.SearchResult {

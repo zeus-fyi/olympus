@@ -17,11 +17,19 @@ import (
 	"go.temporal.io/sdk/activity"
 )
 
-func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildSubProcessParams) error {
+func WfDebugUtil(ctx context.Context, mb *MbChildSubProcessParams) error {
 	zerr := S3WfRunUploadDebug(ctx, mb.GetRunName(), mb)
 	if zerr != nil {
 		log.Err(zerr).Msg("CsvIterator: SelectAiWorkflowAnalysisResultsIds failed")
 		return zerr
+	}
+	return nil
+}
+
+func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildSubProcessParams) error {
+	werr := WfDebugUtil(ctx, mb)
+	if werr != nil {
+		return nil
 	}
 	in, gerr := gs3wfs(ctx, mb)
 	if gerr != nil {

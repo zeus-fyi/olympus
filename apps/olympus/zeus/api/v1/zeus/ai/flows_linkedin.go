@@ -197,6 +197,7 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity(wfn, tn, retN string, uef
 	if wfn != validateEmails {
 		w.CsvBillingCount += len(pls)
 	}
+	// todo json verify billing to json schema ^
 	w.WfRetrievalOverrides[wfn] = map[string]artemis_orchestrations.RetrievalOverride{
 		retN: artemis_orchestrations.RetrievalOverride{Payloads: pls},
 	}

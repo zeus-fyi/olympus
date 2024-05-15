@@ -26,14 +26,6 @@ function convertUnixNanoToLocalTimeString(unixNano: string): string {
 export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, csvExport: boolean; open : boolean; handleOpen: any }) {
     const {csvExport, row, index, handleClick, checked, open, handleOpen } = props;
 
-    const findHighestCompletion = (row: OrchestrationsAnalysis) => {
-        if (row.totalApiRequests === 0) {
-            return 100
-        }
-        const completed = row.completeApiRequests
-        const total = row.totalApiRequests
-        return (completed / total) * 100;
-    };
 
     return (
         <React.Fragment>
@@ -56,7 +48,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 </TableCell>
                 <TableCell align="left">{convertUnixNanoToLocalTimeString(row.orchestration.orchestrationStrID)}</TableCell>
                 <TableCell style={{ fontWeight: 'normal', color: 'white', minWidth: 50}}>
-                    <LinearProgress variant="determinate" value={findHighestCompletion(row)} />
+                    <LinearProgress variant="determinate" value={row.progress} />
                 </TableCell>
                 <TableCell align="left">{row.orchestration.orchestrationName}</TableCell>
                 <TableCell align="left">{row.orchestration.groupName}</TableCell>

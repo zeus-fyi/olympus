@@ -23,7 +23,13 @@ func SelectAiSystemOrchestrationsUI(ctx context.Context, ou org_users.OrgUser, r
 	} else {
 		limit = " LIMIT 100"
 	}
+	/*
+	   ALTER TABLE public.ai_workflow_runs
+	       ADD COLUMN total_api_requests int8 NOT NULL DEFAULT 0;
 
+	   ALTER TABLE public.ai_workflow_runs
+	       ADD COLUMN total_csv_cells int8 NOT NULL DEFAULT 0;
+	*/
 	// uses main for unique id, so type == real name for related workflow
 	q.RawQuery = `WITH cte_a AS (
 						SELECT
@@ -32,7 +38,9 @@ func SelectAiSystemOrchestrationsUI(ctx context.Context, ou org_users.OrgUser, r
 							o.group_name AS group_name,
 							o.type AS orchestration_type,
 							o.active,
-							o.org_id
+							o.org_id,
+							ar.total_csv_cells,
+							ar.total_api_requests
 						FROM 
 							public.ai_workflow_runs AS ar 
 					  	JOIN
@@ -97,6 +105,8 @@ func SelectAiSystemOrchestrationsUI(ctx context.Context, ou org_users.OrgUser, r
 								ca.group_name,
 								ca.orchestration_type,
 								ca.active,
+								ca.total_csv_cells,
+								ca.total_api_requests,
 							  	COALESCE(c00.max_run_cycle, 0),
 							  	COALESCE(c00.total_workflow_token_usage, 0) AS total_workflow_token_usage
 							 FROM cte_a ca 
@@ -106,6 +116,8 @@ func SelectAiSystemOrchestrationsUI(ctx context.Context, ou org_users.OrgUser, r
 								ca.orchestration_name,
 								ca.group_name,
 								ca.orchestration_type,
+								ca.total_csv_cells,
+								ca.total_api_requests,
 								ca.active, c00.max_run_cycle, c00.total_workflow_token_usage
 							  ORDER BY ca.orchestration_id DESC;`
 	var ojsRunsActions []OrchestrationsAnalysis
@@ -118,10 +130,25 @@ func SelectAiSystemOrchestrationsUI(ctx context.Context, ou org_users.OrgUser, r
 	for rows.Next() {
 		oj := OrchestrationsAnalysis{}
 		rowErr := rows.Scan(&oj.OrchestrationID, &oj.OrchestrationStrID, &oj.OrchestrationName, &oj.GroupName,
-			&oj.Type, &oj.Active, &oj.RunCycles, &oj.TotalWorkflowTokenUsage)
+			&oj.Type, &oj.Active, &oj.TotalCsvCells, &oj.TotalApiRequests, &oj.RunCycles, &oj.TotalWorkflowTokenUsage)
 		if rowErr != nil {
 			log.Err(rowErr).Msg(q.LogHeader(Orchestrations))
 			return nil, rowErr
+		}
+		if oj.Active {
+			mad := len(oj.AggregatedData)
+			if mad > oj.TotalCsvCells {
+				// alert?
+				mad = oj.TotalCsvCells
+			}
+			rad := len(oj.AggregatedRetrievalResults)
+			if rad > oj.TotalApiRequests {
+				// todo alert?
+				rad = oj.TotalApiRequests
+			}
+			oj.Progress = (float64(mad+rad) / float64(oj.TotalApiRequests+oj.TotalApiRequests)) * float64(100)
+		} else {
+			oj.Progress = 100
 		}
 		ojsRunsActions = append(ojsRunsActions, oj)
 	}

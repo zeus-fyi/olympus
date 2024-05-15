@@ -137,14 +137,14 @@ func (w *WorkflowExecParams) MergeWorkflowTaskRelationships(wfr WorkflowTaskRela
 }
 
 type WorkflowOverrides struct {
-	WorkflowRunName               string                            `json:"workflowRunName"`
-	IsUsingFlows                  bool                              `json:"isUsingFlows"`
-	TotalBillableCsvCellsEstimate int                               `json:"totalBillableCsvCellsEstimate"`
-	TaskPromptOverrides           TaskOverrides                     `json:"taskPromptOverrides"`
-	SchemaFieldOverrides          SchemaOverrides                   `json:"schemaFieldOverrides"`
-	RetrievalOverrides            RetrievalOverrides                `json:"retrievalOverride"`
-	WorkflowEntityRefs            []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
-	WorkflowEntities              []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
+	WorkflowRunName       string                            `json:"workflowRunName"`
+	IsUsingFlows          bool                              `json:"isUsingFlows"`
+	TotalBillableCsvCells int                               `json:"totalBillableCsvCells"`
+	TaskPromptOverrides   TaskOverrides                     `json:"taskPromptOverrides"`
+	SchemaFieldOverrides  SchemaOverrides                   `json:"schemaFieldOverrides"`
+	RetrievalOverrides    RetrievalOverrides                `json:"retrievalOverride"`
+	WorkflowEntityRefs    []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
+	WorkflowEntities      []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
 }
 
 type WorkflowExecTimekeepingParams struct {
@@ -473,12 +473,11 @@ func UpsertAiOrchestration(ctx context.Context, ou org_users.OrgUser, wfParentID
 			apiReqCount += plc
 		}
 	}
-	cellReqCount := 0
 	err = apps.Pg.QueryRowWArgs(ctx, q.RawQuery, ou.OrgID,
 		wfParentID, wfExec.WorkflowTemplate.WorkflowGroup,
 		wfExec.WorkflowTemplate.WorkflowName, active,
 		&pgtype.JSONB{Bytes: sanitizeBytesUTF8(b), Status: IsNull(b)},
-		apiReqCount, cellReqCount,
+		apiReqCount, wfExec.WorkflowOverrides.TotalBillableCsvCells,
 	).Scan(&id)
 	if returnErr := misc.ReturnIfErr(err, q.LogHeader(Orchestrations)); returnErr != nil {
 		return 0, err

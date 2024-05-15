@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/rs/zerolog/log"
@@ -63,6 +64,9 @@ func (z *ZeusAiPlatformActivities) ApiCallRequestTask(ctx context.Context, r Rou
 		SkipErrorOnStatusCodes: setDontRetryCodes(retInst),
 		SecretNameRef:          fmt.Sprintf("api-%s", rg),
 		IsFlowRequest:          cp.WfExecParams.WorkflowOverrides.IsUsingFlows,
+	}
+	if strings.Contains(rg, "google") && cp.WfExecParams.WorkflowOverrides.IsUsingFlows {
+		req.DeleteResponseKeys = []string{"context", "searchInformation", "kind", "queries", "url"}
 	}
 	log.Info().Interface("req.Url", req.Url).Msg("req value")
 	reqHash, reqCached := checkIfCached(ctx, cp, r, req)

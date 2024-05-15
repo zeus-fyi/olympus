@@ -397,6 +397,19 @@ func sendRequest(request *resty.Request, pr *ApiProxyRequest, method string) (*r
 		}
 		if pr.RegexFilters != nil {
 			br := resp.Body()
+			if len(br) > 0 {
+				m := make(map[string]interface{})
+				err = json.Unmarshal(br, &m)
+				if err != nil {
+					log.Err(err).Msg("sendRequest br")
+					err = nil
+				} else {
+					for _, ck := range pr.DeleteResponseKeys {
+						delete(m, ck)
+					}
+					br, _ = json.Marshal(m)
+				}
+			}
 			if pr.RequestHeaders != nil && pr.RequestHeaders["X-Scrape-Html"] != nil {
 				tv := resp.String()
 				tv = strings.TrimPrefix(tv, "\"")

@@ -194,6 +194,9 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity(wfn, tn, retN string, uef
 			},
 		},
 	}
+	if wfn != validateEmails {
+		w.CsvBillingCount += len(pls)
+	}
 	w.WfRetrievalOverrides[wfn] = map[string]artemis_orchestrations.RetrievalOverride{
 		retN: artemis_orchestrations.RetrievalOverride{Payloads: pls},
 	}
@@ -277,6 +280,8 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity4(wfn, tn, retN string, ue
 			nps = append(nps, nmv)
 		}
 	}
+
+	w.CsvBillingCount += len(nps)
 	w.WfRetrievalOverrides[wfn] = map[string]artemis_orchestrations.RetrievalOverride{
 		retN: artemis_orchestrations.RetrievalOverride{Payloads: nps},
 	}

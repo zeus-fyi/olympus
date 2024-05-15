@@ -23,15 +23,6 @@ type WorkflowExecParams struct {
 	WorkflowTasks                 []WorkflowTemplateData        `json:"workflowTasks"`
 	WorkflowOverrides             WorkflowOverrides             `json:"workflowOverrides"`
 }
-type WorkflowOverrides1 struct {
-	WorkflowRunName      string                            `json:"workflowRunName"`
-	IsUsingFlows         bool                              `json:"isUsingFlows"`
-	TaskPromptOverrides  TaskOverrides                     `json:"taskPromptOverrides"`
-	SchemaFieldOverrides SchemaOverrides                   `json:"schemaFieldOverrides"`
-	RetrievalOverrides   RetrievalOverrides                `json:"retrievalOverride"`
-	WorkflowEntityRefs   []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
-	WorkflowEntities     []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
-}
 
 func (w *WorkflowExecParams) MergeWorkflowOverrides(other WorkflowOverrides) {
 	w.WorkflowOverrides.WorkflowEntityRefs = append(w.WorkflowOverrides.WorkflowEntityRefs, other.WorkflowEntityRefs...)
@@ -45,7 +36,6 @@ func (w *WorkflowExecParams) MergeWorkflowOverrides(other WorkflowOverrides) {
 	for k, v := range other.RetrievalOverrides {
 		w.WorkflowOverrides.RetrievalOverrides[k] = v
 	}
-
 	for k, v := range other.TaskPromptOverrides {
 		w.WorkflowOverrides.TaskPromptOverrides[k] = v
 	}
@@ -147,13 +137,14 @@ func (w *WorkflowExecParams) MergeWorkflowTaskRelationships(wfr WorkflowTaskRela
 }
 
 type WorkflowOverrides struct {
-	WorkflowRunName      string                            `json:"workflowRunName"`
-	IsUsingFlows         bool                              `json:"isUsingFlows"`
-	TaskPromptOverrides  TaskOverrides                     `json:"taskPromptOverrides"`
-	SchemaFieldOverrides SchemaOverrides                   `json:"schemaFieldOverrides"`
-	RetrievalOverrides   RetrievalOverrides                `json:"retrievalOverride"`
-	WorkflowEntityRefs   []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
-	WorkflowEntities     []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
+	WorkflowRunName               string                            `json:"workflowRunName"`
+	IsUsingFlows                  bool                              `json:"isUsingFlows"`
+	TotalBillableCsvCellsEstimate int                               `json:"totalBillableCsvCellsEstimate"`
+	TaskPromptOverrides           TaskOverrides                     `json:"taskPromptOverrides"`
+	SchemaFieldOverrides          SchemaOverrides                   `json:"schemaFieldOverrides"`
+	RetrievalOverrides            RetrievalOverrides                `json:"retrievalOverride"`
+	WorkflowEntityRefs            []artemis_entities.EntitiesFilter `json:"workflowEntitiesRef,omitempty"`
+	WorkflowEntities              []artemis_entities.UserEntity     `json:"workflowEntities,omitempty"`
 }
 
 type WorkflowExecTimekeepingParams struct {

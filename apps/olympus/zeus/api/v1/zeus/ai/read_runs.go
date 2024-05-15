@@ -161,7 +161,7 @@ func (w *GetRunsActionsRequest) GetRun(c echo.Context, id int) error {
 			agr.RunningCycleNumber = 0
 			agr.IterationCount = 0
 			agr.ChunkOffset = 0
-			agr.RetrievalName = "summary retrievals"
+			agr.RetrievalName = "retrieval completions"
 			agr.Status = fmt.Sprintf("success %d, errors %d, unknown %d, total %d", success, errCount, unknown, rvl)
 			tmp = append(tmp, agr)
 			ojsRuns[oi].AggregatedRetrievalResults = tmp

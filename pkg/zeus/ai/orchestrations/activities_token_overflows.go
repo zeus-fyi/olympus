@@ -157,6 +157,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		sgName = "api"
 	} else if pr.PromptReductionSearchResults.InSearchGroup.SearchResults != nil {
 		compressedSearchStr += hera_search.FormatSearchResultsV5(pr.PromptReductionSearchResults.InSearchGroup.SearchResults)
+		totalSearchResults = pr.PromptReductionSearchResults.InSearchGroup.SearchResults
 	}
 	if pr.PromptReductionText != nil && (len(pr.PromptReductionText.InPromptSystem) > 0 || len(pr.PromptReductionText.InPromptBody) > 0) {
 		compressedSearchStr += pr.PromptReductionText.InPromptSystem
@@ -167,6 +168,26 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		log.Err(err).Interface("tokenEstimate", tokenEstimate).Interface("compressedSearchStr", compressedSearchStr).Msg("TokenOverflowSearchResults: CheckTokenContextMargin")
 		return err
 	}
+	if needsReduction {
+		switch sgName {
+		case "sg":
+		case "regex":
+			for i, _ := range pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults {
+				rb := pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults[i].WebResponse.RegexFilteredBody
+				pr.PromptReductionSearchResults.InSearchGroup.RegexSearchResults[i].WebResponse.RegexFilteredBody = TruncateString(rb, pr.MarginBuffer)
+			}
+			needsReduction = false
+		case "api":
+			// todo trim body to keep json
+			for i, _ := range pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults {
+				rb := pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults[i].Value
+				pr.PromptReductionSearchResults.InSearchGroup.ApiResponseResults[i].Value = TruncateString(rb, pr.MarginBuffer)
+			}
+			needsReduction = false
+		default:
+		}
+	}
+
 	log.Info().Interface("needsReduction", needsReduction).Interface("tokenEstimate", tokenEstimate).Msg("TokenOverflowSearchResults: ChunkSearchResults")
 	if !needsReduction {
 		pr.PromptReductionSearchResults.InSearchGroup.SearchResultChunkTokenEstimate = &tokenEstimate
@@ -202,8 +223,13 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		return nil
 	}
 
-	splitIteration := 2
+	splitIteration := 0
 	for needsReduction && (splitIteration < len(totalSearchResults)) {
+		if splitIteration == 0 {
+			for si, _ := range totalSearchResults {
+				totalSearchResults[si].Value = TruncateString(totalSearchResults[si].Value, pr.MarginBuffer)
+			}
+		}
 		log.Info().Interface("splitIteration", splitIteration).Interface("len(totalSearchResults)", len(totalSearchResults)).Msg("ChunkSearchResults")
 		chunks := splitSliceIntoChunks(totalSearchResults, splitIteration)
 		var tokenEstimates []int
@@ -224,7 +250,7 @@ func ChunkSearchResults(ctx context.Context, pr *PromptReduction) error {
 		splitIteration++
 		activity.RecordHeartbeat(ctx, fmt.Sprintf("splitIteration-%d", splitIteration))
 	}
-	if len(totalSearchResults) == splitIteration {
+	if len(totalSearchResults) == splitIteration || len(totalSearchResults) == 1 {
 		log.Warn().Msg("todo, truncate string")
 		return nil
 	}
@@ -426,8 +452,8 @@ func validateMarginBufferLimits(marginBuffer float64) float64 {
 	if marginBuffer >= 0.01 && marginBuffer < 0.2 {
 		return 0.2
 	}
-	if marginBuffer > 0.80 {
-		return 0.80
+	if marginBuffer > 0.90 {
+		return 0.90
 	}
 	return marginBuffer
 }

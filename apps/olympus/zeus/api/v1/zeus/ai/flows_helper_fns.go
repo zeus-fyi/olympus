@@ -106,7 +106,8 @@ func (w *ExecFlowsActionsRequest) getPromptsMap(stage string) map[string]string 
 		for cn, colValue := range cvs {
 			v, ok := w.StagePromptMap[cn]
 			if ok && (v == stage || strings.ToLower(v) == "default") {
-				prompts[cn] = colValue
+				cnStage := fmt.Sprintf("%s_%s", stage, cn)
+				prompts[cnStage] = colValue
 			}
 		}
 	}
@@ -155,6 +156,18 @@ func (w *ExecFlowsActionsRequest) ConvertToCsvStrToMap() ([]string, error) {
 			log.Err(err).Msg("SaveCsvImports: PromptsCsvStr: error")
 			return nil, err
 		}
+		var tslice []map[string]string
+		for _, vi := range pcv {
+			for k, v := range vi {
+				if v == "" {
+					delete(vi, k)
+				}
+			}
+			if len(vi) > 0 {
+				tslice = append(tslice, vi)
+			}
+		}
+		pcv = tslice
 		for r, mv := range pcv {
 			tmp := make(map[string]string)
 			for k, v := range mv {

@@ -32,18 +32,11 @@ type OrchestrationsAnalysis struct {
 	CompleteApiRequests                  int                         `json:"completeApiRequests"`
 	TotalApiRequests                     int                         `json:"totalApiRequests"`
 	TotalCsvCells                        int                         `json:"totalCsvCells"`
+	Progress                             float64                     `json:"progress"`
 	AggregatedData                       []AggregatedData            `db:"aggregated_data" json:"aggregatedData,omitempty"`
 	AggregatedEvalResults                []EvalMetric                `json:"aggregatedEvalResults,omitempty"`
 	AggregatedRetrievalResults           []AIWorkflowRetrievalResult `json:"aggregatedRetrievalResults,omitempty"`
-	WorkflowStatus                       *WfStatus                   `json:"workflowStatus,omitempty"`
 	artemis_autogen_bases.Orchestrations `json:"orchestration,omitempty"`
-}
-
-type WfStatus struct {
-	TotalApiRequests    int `json:"totalApiRequests"`
-	CompleteApiRequests int `json:"completeApiRequests"`
-	TotalCsvElements    int `json:"totalCsvElements"`
-	CompleteCsvElements int `json:"completeCsvElements"`
 }
 
 func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid int) ([]OrchestrationsAnalysis, error) {
@@ -397,6 +390,21 @@ func SelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser, rid
 				filteredResults = append(filteredResults, evals[j])
 				seen[aws.ToInt(evals[j].EvalMetricResult.EvalMetricResultID)] = true
 			}
+		}
+		if oj.Active {
+			mad := len(oj.AggregatedData)
+			if mad > oj.TotalCsvCells {
+				// alert?
+				mad = oj.TotalCsvCells
+			}
+			rad := len(oj.AggregatedRetrievalResults)
+			if rad > oj.TotalApiRequests {
+				// todo alert?
+				rad = oj.TotalApiRequests
+			}
+			oj.Progress = (float64(mad+rad) / float64(oj.TotalApiRequests+oj.TotalApiRequests)) * float64(100)
+		} else {
+			oj.Progress = 100
 		}
 		oj.AggregatedEvalResults = filteredResults
 		ojs = append(ojs, oj)

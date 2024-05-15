@@ -60,7 +60,7 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity(liWf, wbsTaskName, linkedInRetQp, uef, colName, emRow, pls)
+	err := w.createCsvMergeEntity(liWf, liTask, linkedInRetQp, uef, colName, emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
@@ -73,11 +73,11 @@ func (w *ExecFlowsActionsRequest) LinkedInScraperSetup(uef *artemis_entities.Ent
 			}
 			prompts = []string{v}
 		} else {
-			tmp := w.TaskOverrides[wbsTaskName]
+			tmp := w.TaskOverrides[liTask]
 			tmp.SystemPromptExt = v
-			w.TaskOverrides[wbsTaskName] = tmp
+			w.TaskOverrides[liTask] = tmp
 		}
-		w.createWfTaskPromptOverrides(liWf, wbsTaskName, w.getPromptsMap(linkedIn))
+		w.createWfTaskPromptOverrides(liWf, liTask, w.getPromptsMap(linkedIn))
 		//w.createWfSchemaFieldOverride(liWf, wbsTaskName, "summary", prompts)
 	}
 	return nil
@@ -132,7 +132,7 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 		return nil
 	}
 	w.InitMaps()
-	err := w.createCsvMergeEntity(liBizWf, wbsTaskName, linkedInBizRetQp, uef, colName, emRow, pls)
+	err := w.createCsvMergeEntity(liBizWf, liBizTask, linkedInBizRetQp, uef, colName, emRow, pls)
 	if err != nil {
 		log.Err(err).Msg("createCsvMergeEntity: failed to marshal")
 		return err
@@ -145,11 +145,11 @@ func (w *ExecFlowsActionsRequest) LinkedInBizScraperSetup(uef *artemis_entities.
 			}
 			prompts = []string{v}
 		} else {
-			tmp := w.TaskOverrides[wbsTaskName]
+			tmp := w.TaskOverrides[liBizTask]
 			tmp.SystemPromptExt = v
-			w.TaskOverrides[wbsTaskName] = tmp
+			w.TaskOverrides[liBizTask] = tmp
 		}
-		w.createWfTaskPromptOverrides(liBizWf, wbsTaskName, w.getPromptsMap(linkedInBiz))
+		w.createWfTaskPromptOverrides(liBizWf, liBizTask, w.getPromptsMap(linkedInBiz))
 		//w.createWfSchemaFieldOverride(liBizWf, wbsTaskName, "summary", prompts)
 	}
 	return nil
@@ -194,6 +194,10 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity(wfn, tn, retN string, uef
 			},
 		},
 	}
+	if wfn != validateEmails {
+		w.CsvBillingCount += len(pls)
+	}
+	// todo json verify billing to json schema ^
 	w.WfRetrievalOverrides[wfn] = map[string]artemis_orchestrations.RetrievalOverride{
 		retN: artemis_orchestrations.RetrievalOverride{Payloads: pls},
 	}
@@ -277,6 +281,8 @@ func (w *ExecFlowsActionsRequest) createCsvMergeEntity4(wfn, tn, retN string, ue
 			nps = append(nps, nmv)
 		}
 	}
+
+	w.CsvBillingCount += len(nps)
 	w.WfRetrievalOverrides[wfn] = map[string]artemis_orchestrations.RetrievalOverride{
 		retN: artemis_orchestrations.RetrievalOverride{Payloads: nps},
 	}

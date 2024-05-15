@@ -29,8 +29,8 @@ const (
 
 	googCsvWf = "google-search-csv-wf"
 
-	liWf    = "linkedin-rapid-api-profiles-wf"
-	liBizWf = "linkedin-rapid-api-biz-profiles-wf"
+	liWf    = "linkedin-rapid-api-profiles-wf-2"
+	liBizWf = "linkedin-biz-rapid-api-profiles-wf-2"
 
 	// wf identifier stage
 	linkedIn       = "linkedIn"
@@ -50,6 +50,8 @@ const (
 	googleRetName = "google-query-params"
 	// task
 	wbsTaskName    = "website-analysis"
+	liBizTask      = "linkedin-biz-rapid-api-profiles-task"
+	liTask         = "linkedin-rapid-api-profiles-task"
 	googleTaskName = "google-search-analysis"
 
 	// work labels
@@ -122,7 +124,9 @@ func (w *ExecFlowsActionsRequest) CustomCsvWorkflows(uef *artemis_entities.Entit
 				}
 			}
 		}
+		w.CustomWorkflows = append(w.CustomWorkflows, wfv)
 	}
+	w.Workflows = nil
 	return nil
 }
 

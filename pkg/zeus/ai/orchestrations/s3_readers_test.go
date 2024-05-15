@@ -1,6 +1,8 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
+
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_entities"
 )
 
@@ -19,7 +21,19 @@ import (
 //			continue
 //		}
 //	}
+
+func (t *ZeusWorkerTestSuite) TestS3WfDebugRunExport() {
+	wfn := "csv-analysis-dbc1318e-c65c"
+	b, err := S3WfDebugRunExport(ctx, wfn)
+	t.Require().Nil(err)
+	t.Require().NotNil(b.Bytes())
+
+	mb := MbChildSubProcessParams{}
+	err = json.Unmarshal(b.Bytes(), &mb)
+	t.Require().Nil(err)
+}
 func (t *ZeusWorkerTestSuite) TestGetGlobalEntitiesFromRef() {
+
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	refs := []artemis_entities.EntitiesFilter{
 		{

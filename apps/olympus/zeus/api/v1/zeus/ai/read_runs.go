@@ -2,8 +2,10 @@ package zeus_v1_ai
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -106,6 +108,64 @@ func (w *GetRunsActionsRequest) GetRun(c echo.Context, id int) error {
 	if err != nil {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	for oi, ojv := range ojsRuns {
+		pcUsed := 0
+		cmpUsed := 0
+		tokensUsed := 0
+		lv := len(ojv.AggregatedData)
+		if lv >= 10 {
+			var tmp []artemis_orchestrations.AggregatedData
+			for iv, v := range ojv.AggregatedData {
+				if iv < 10 {
+					tmp = append(tmp, v)
+				}
+				tokensUsed += v.TotalTokens
+				pcUsed += v.PromptTokens
+				cmpUsed += v.CompletionTokens
+			}
+			agd := artemis_orchestrations.AggregatedData{
+				AIWorkflowAnalysisResult: artemis_orchestrations.AIWorkflowAnalysisResult{},
+				TaskName:                 "task completions",
+				TaskType:                 fmt.Sprintf("success %d", lv),
+				PromptTokens:             pcUsed,
+				CompletionTokens:         cmpUsed,
+				TotalTokens:              tokensUsed,
+			}
+			tmp = append(tmp, agd)
+			ojsRuns[oi].AggregatedData = tmp
+		}
+		rvl := len(ojv.AggregatedRetrievalResults)
+		if rvl >= 10 {
+			errCount := 0
+			success := 0
+			unknown := 0
+			var tmp []artemis_orchestrations.AIWorkflowRetrievalResult
+			var agr artemis_orchestrations.AIWorkflowRetrievalResult
+			for iv, v := range ojv.AggregatedRetrievalResults {
+				if iv == 0 {
+					agr = v
+				}
+				if iv < 10 {
+					tmp = append(tmp, v)
+				}
+				if strings.Contains(v.Status, "complete") {
+					success += 1
+				} else if strings.Contains(v.Status, "error") {
+					errCount += 1
+				} else {
+					unknown += 1
+				}
+			}
+			agr.RunningCycleNumber = 0
+			agr.IterationCount = 0
+			agr.ChunkOffset = 0
+			agr.RetrievalName = "retrieval completions"
+			agr.Status = fmt.Sprintf("success %d, errors %d, unknown %d, total %d", success, errCount, unknown, rvl)
+			tmp = append(tmp, agr)
+			ojsRuns[oi].AggregatedRetrievalResults = tmp
+		}
 	}
 	return c.JSON(http.StatusOK, ojsRuns)
 }

@@ -35,7 +35,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	if len(w.Workflows) > 0 {
+	if len(w.Workflows) > 0 || len(w.CustomWorkflows) > 0 {
 		w.Action = "start"
 	}
 	w.Duration = 1
@@ -62,6 +62,12 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
 			return c.JSON(http.StatusInternalServerError, nil)
 		}
+		resp2, rerr := artemis_orchestrations.GetAiOrchestrationParams(c.Request().Context(), ou, &window, w.CustomWorkflows)
+		if rerr != nil {
+			log.Err(rerr).Interface("ou", ou).Interface("[]WorkflowTemplate", w.Workflows).Msg("WorkflowsActionsRequestHandler: GetAiOrchestrationParams failed")
+			return c.JSON(http.StatusInternalServerError, nil)
+		}
+		resp = append(resp, resp2...)
 		var wfExecParams artemis_orchestrations.WorkflowExecParams
 		for ri, _ := range resp {
 			wfName := resp[ri].WorkflowTemplate.WorkflowName
@@ -114,6 +120,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		wfExecParams.WorkflowOverrides.IsUsingFlows = true
 		wfExecParams.WorkflowTemplate.WorkflowName = "csv-analysis"
 		wfExecParams.WorkflowTemplate.WorkflowGroup = w.ContactsCsvFilename
+		wfExecParams.WorkflowOverrides.TotalBillableCsvCells = w.CsvBillingCount
 		rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, wfExecParams)
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")

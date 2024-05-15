@@ -41,10 +41,10 @@ export interface RetrievalResult {
 export interface OrchestrationsAnalysis {
     totalWorkflowTokenUsage: number;
     runCycles: number;
+    progress: number;
     completeApiRequests: number;
     totalApiRequests: number;
     totalCsvCells: number;
-    completeCsvCells: number;
     aggregatedData: AggregatedData[];
     orchestration: Orchestration;
     aggregatedEvalResults: EvalMetric[]; // Added array of EvalMetricsResult

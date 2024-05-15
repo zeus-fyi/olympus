@@ -17,18 +17,33 @@ import (
 	"go.temporal.io/sdk/activity"
 )
 
+func WfDebugUtil(ctx context.Context, mb *MbChildSubProcessParams) error {
+	zerr := S3WfRunUploadDebug(ctx, mb.GetRunName(), mb)
+	if zerr != nil {
+		log.Err(zerr).Msg("CsvIterator: SelectAiWorkflowAnalysisResultsIds failed")
+		return zerr
+	}
+	return nil
+}
+
 func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildSubProcessParams) error {
+	werr := WfDebugUtil(ctx, mb)
+	if werr != nil {
+		return nil
+	}
 	in, gerr := gs3wfs(ctx, mb)
 	if gerr != nil {
 		log.Err(gerr).Msg("CsvIterator: gws failed")
 		return gerr
 	}
+	log.Info().Interface("mb.Tc.TaskName", mb.Tc.TaskName).Msg("mb.Tc.TaskName)")
 	log.Info().Interface("mb.Tc.TaskOffset", mb.Tc.TaskOffset).Msg("mb.Tc.TaskOffset)")
 	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID}, mb.Tc.TaskOffset)
 	if serr != nil {
 		log.Err(serr).Msg("CsvIterator: SelectAiWorkflowAnalysisResultsIds failed")
 		return serr
 	}
+	log.Info().Interface("len(sv)", len(sv)).Msg("CsvIterator")
 	sm := make(map[int]map[int]bool)
 	for _, vi := range sv {
 		if _, ok := sm[vi.ChunkOffset]; !ok {
@@ -36,8 +51,11 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 		}
 		sm[vi.ChunkOffset][vi.IterationCount] = true
 	}
+	log.Info().Interface("sm", sm).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Interface("mb.Tc.TaskOffset", mb.Tc.TaskOffset).Msg("CsvIterator")
 	prov := getPrompts(mb)
+	log.Info().Interface("prov", prov).Msg("CsvIterator")
 	for i := 0; i < mb.Tc.ChunkIterator; i++ {
+		log.Info().Interface("i", i).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Interface("mb.Tc.TaskOffset", mb.Tc.TaskOffset).Msg("CsvIterator")
 		err := iterResp(ctx, i, mb, in, prov, sm)
 		if err != nil {
 			log.Err(err).Msg("CsvIterator: gws failed")
@@ -51,21 +69,29 @@ func (z *ZeusAiPlatformActivities) CsvIterator(ctx context.Context, mb *MbChildS
 func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *WorkflowStageIO, prms map[string]string, seen map[int]map[int]bool) error {
 	// needs to get correct prompt mapped search
 	sr := getSearchResults(chunk, mb, in)
+	log.Info().Interface("len(sr)", len(sr)).Interface(" mb.Tc.ChunkIterator", mb.Tc.ChunkIterator).Msg("CsvIterator")
 	var keys []string
 	for key := range prms {
 		keys = append(keys, key)
 	}
+	log.Info().Interface("keys", keys).Msg("iterResp")
 	sort.Strings(keys)
+	count := 0
 	for offsetInd, colName := range keys {
+		log.Info().Int("count", count).Msg("CsvIterator")
+		count += 1
 		if tv, ok := seen[chunk][offsetInd]; ok && tv {
 			continue
 		}
+		log.Info().Interface("offsetInd", offsetInd).Interface("colName", colName).Msg("CsvIterator")
 		taskInstPrompt := prms[colName]
 		for _, v := range sr {
 			if len(v.PromptKey) > 0 && v.PromptKey != colName {
+				log.Warn().Interface("v.PromptKey", v.PromptKey).Interface("colName", colName).Msg("CsvIterator")
 				continue
 			}
 			if !validPromptContent(ctx, v.Value) {
+				log.Warn().Interface("v.Value", v.Value).Msg("CsvIterator")
 				continue
 			}
 			na := NewZeusAiPlatformActivities()
@@ -74,6 +100,8 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 				log.Err(err).Msg("CsvIterator: iterResp failed")
 				return err
 			}
+			log.Info().Str(fmt.Sprintf("iterate-%s-%d", colName, offsetInd), fmt.Sprintf("iterate-%s-%d", colName, offsetInd)).Msg("CsvIterator")
+			activity.RecordHeartbeat(ctx, fmt.Sprintf("iterate-%s-%d", colName, offsetInd))
 			err = saveCsvResp(ctx, colName, chunk, offsetInd, mb, cr, v)
 			if err != nil {
 				log.Err(err).Msg("CsvIterator: saveCsvResp failed")
@@ -85,6 +113,7 @@ func iterResp(ctx context.Context, chunk int, mb *MbChildSubProcessParams, in *W
 }
 
 func saveCsvResp(ctx context.Context, colName string, chunk, offsetInd int, mb *MbChildSubProcessParams, cr *ChatCompletionQueryResponse, v hera_search.SearchResult) error {
+	log.Info().Msg("saveCsvResp")
 	m := getCsvResp(colName, cr)
 	if m == nil {
 		log.Warn().Msg("saveCsvResp nil m")
@@ -206,11 +235,11 @@ func (z *ZeusAiPlatformActivities) CsvAnalysisTask(ctx context.Context, ou org_u
 }
 
 func getPrompts(mb *MbChildSubProcessParams) map[string]string {
-	tmp := mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides
-	for _, mp := range tmp {
-		return mp.ReplacePrompts
+	if len(mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides) == 0 {
+		return nil
 	}
-	return nil
+	tmp := mb.WfExecParams.WorkflowOverrides.TaskPromptOverrides[mb.Tc.TaskName]
+	return tmp.ReplacePrompts
 }
 
 func getSearchResults(chunk int, mb *MbChildSubProcessParams, in *WorkflowStageIO) []hera_search.SearchResult {

@@ -216,3 +216,27 @@ func S3WfRunExport(ctx context.Context, ou org_users.OrgUser, wfRunName string, 
 	}
 	return ue, err
 }
+
+func S3WfDebugRunExport(ctx context.Context, wfRunName string) (*bytes.Buffer, error) {
+	if err := s3SetupCheck(ctx); err != nil {
+		return nil, err
+	}
+	p := &filepaths.Path{
+		DirIn:  fmt.Sprintf("/debug/runs/%s", wfRunName),
+		DirOut: fmt.Sprintf("/debug/runs/%s", wfRunName),
+		FnIn:   fmt.Sprintf("%s.json", wfRunName),
+		FnOut:  fmt.Sprintf("%s.json", wfRunName),
+	}
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("S3WfDebugRunExport")
+	br := poseidon.S3BucketRequest{
+		BucketName: FlowsBucketName,
+		BucketKey:  p.FileOutPath(),
+	}
+	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
+	buf, err := pos.S3DownloadReadBytes(ctx, br)
+	if err != nil {
+		log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
+		return nil, err
+	}
+	return buf, err
+}

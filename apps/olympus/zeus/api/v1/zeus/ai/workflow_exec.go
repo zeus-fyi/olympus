@@ -35,6 +35,7 @@ type WorkflowsActionsRequest struct {
 	WorkflowEntities          []artemis_entities.UserEntity                        `json:"workflowEntities,omitempty"`
 	WorkflowEntitiesOverrides artemis_orchestrations.WorkflowUserEntitiesOverrides `json:"workflowEntitiesOverrides,omitempty"`
 	Workflows                 []artemis_orchestrations.WorkflowTemplate            `json:"workflows,omitempty"`
+	CustomWorkflows           []artemis_orchestrations.WorkflowTemplate            `json:"customWorkflows,omitempty"`
 }
 
 func WorkflowsActionsRequestHandler(c echo.Context) error {

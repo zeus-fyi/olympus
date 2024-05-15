@@ -51,6 +51,7 @@ type ApiProxyRequest struct {
 	QueryParams            url.Values
 	Payload                echo.Map
 	Payloads               []map[string]interface{}
+	DeleteResponseKeys     []string
 	Response               echo.Map
 	RequestHeaders         http.Header
 	ResponseHeaders        http.Header

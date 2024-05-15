@@ -58,11 +58,9 @@ func (z *ZeusAiPlatformActivities) SaveCsvTaskOutput(ctx context.Context, cp *Mb
 							log.Err(jerr).Interface("minv.JsonData", minv.JsonData).Msg(" json.Unmarshal(minv.JsonData, &emRow)")
 							continue
 						}
-						cnT := cme.MergeColName
 						log.Info().Interface("cme.MergeColName", cme.MergeColName).Msg("cme.MergeColName")
-						cv := convEntityToCsvCol(cnT, payloadMaps, mind)
 						//fmt.Println(cv)
-						_, ms, merr := utils_csv.MergeCsvEntity(source, cv, cme, mind)
+						_, ms, merr := utils_csv.MergeCsvEntity(source, payloadMaps, cme, mind)
 						if merr != nil {
 							log.Err(merr).Msg("SaveCsvTaskOutput: MergeCsvEntity")
 							return 0, err

@@ -1,6 +1,7 @@
 package ai_platform_service_orchestrations
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
@@ -35,10 +36,12 @@ func (t *ZeusWorkerTestSuite) TestCsvIterator() {
 }
 
 func (t *ZeusWorkerTestSuite) TestCsvIteratorReports() {
-	fnv := "CsvIteratorDebug-cycle-1-chunk-0-1714195427378636000.json"
-	dbg := OpenCsvIteratorDebug(fnv)
+	b, err := S3WfDebugRunExport(ctx, "csv-analysis-dbc1318e-c65c")
+	t.Require().Nil(err)
 	na := NewZeusAiPlatformActivities()
-	mb := dbg.Cp
+
+	mb := &MbChildSubProcessParams{}
+	err = json.Unmarshal(b.Bytes(), mb)
 	sv, serr := artemis_orchestrations.SelectAiWorkflowAnalysisResultsIds(ctx, mb.Window, []int{mb.Oj.OrchestrationID}, []int{mb.Tc.TaskID}, 0)
 	t.Require().Nil(serr)
 	fmt.Println(sv)
@@ -51,7 +54,7 @@ func (t *ZeusWorkerTestSuite) TestCsvIteratorReports() {
 	}
 
 	fmt.Println(na)
-	err := na.GenerateCycleReports(ctx, mb)
+	err = na.GenerateCycleReports(ctx, mb)
 	t.Require().Nil(err)
 }
 

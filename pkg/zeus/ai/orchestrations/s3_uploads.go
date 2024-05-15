@@ -173,8 +173,8 @@ func S3WfRunUploadDebug(ctx context.Context, wfRunName string, payload any) erro
 		return err
 	}
 	p := &filepaths.Path{
-		DirIn:  fmt.Sprintf("/debug/runs/%s", wfRunName),
-		DirOut: fmt.Sprintf("/debug/runs/%s", wfRunName),
+		DirIn:  fmt.Sprintf("/debug/runs/"),
+		DirOut: fmt.Sprintf("/debug/runs/"),
 		FnIn:   fmt.Sprintf("%s.json", wfRunName),
 		FnOut:  fmt.Sprintf("%s.json", wfRunName),
 	}

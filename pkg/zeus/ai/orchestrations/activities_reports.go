@@ -195,15 +195,3 @@ func mergeMaps(plms []map[string]interface{}, uniqueKey string) []map[string]int
 	}
 	return result
 }
-
-//merg, err = getGlobalCsvMergedEntities(gens, cp, wio)
-//if err != nil {
-//log.Err(err).Msg("SaveCsvTaskOutput: GetGlobalEntitiesFromRef: failed to select workflow io")
-//return 0, err
-
-/*
-	ret-only:
-		ws.PromptReduction.PromptReductionSearchResults.OutSearchGroups
-	analysis/agg-json:
-		need wk-result id for every chunk
-*/

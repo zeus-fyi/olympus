@@ -222,8 +222,8 @@ func S3WfDebugRunExport(ctx context.Context, wfRunName string) (*bytes.Buffer, e
 		return nil, err
 	}
 	p := &filepaths.Path{
-		DirIn:  fmt.Sprintf("/debug/runs"),
-		DirOut: fmt.Sprintf("/debug/runs"),
+		DirIn:  fmt.Sprintf("/debug/runs/%s", wfRunName),
+		DirOut: fmt.Sprintf("/debug/runs/%s", wfRunName),
 		FnIn:   fmt.Sprintf("%s.json", wfRunName),
 		FnOut:  fmt.Sprintf("%s.json", wfRunName),
 	}

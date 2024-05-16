@@ -8,6 +8,9 @@ const flowsSlice = createSlice({
         setFlowList: (state, action: PayloadAction<string[]>) => {
             state.flowList = action.payload;
         },
+        setAdminFlowsMainTab: (state, action: PayloadAction<number>) => {
+            state.adminFlowsMainTab = action.payload;
+        },
         setPromptsCsvContent: (state, action: PayloadAction<[]>) => {
             state.promptsCsvContent = action.payload;
         },
@@ -77,6 +80,7 @@ export const {
     setContactsCsvFilename,
     setPromptFlowMap,
     setContactsFlowMap,
-    setFlowList
+    setFlowList,
+    setAdminFlowsMainTab
 } = flowsSlice.actions;
 export default flowsSlice.reducer

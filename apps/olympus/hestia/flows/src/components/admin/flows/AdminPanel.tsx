@@ -81,7 +81,10 @@ function AdminDashboard() {
     let navigate = useNavigate();
     const dispatch = useDispatch();
     const [loading, setIsLoading] = useState(false);
-
+    const [selectedMainTab, setSelectedMainTab] = useState(0);
+    const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setSelectedMainTab(newValue);
+    }
     const handleLogout = async (event: any) => {
         event.preventDefault();
         await authProvider.logout()

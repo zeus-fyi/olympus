@@ -1,4 +1,5 @@
 export interface FlowState {
+    adminFlowsMainTab: number;
     flowList: string[],
     uploadContentContacts: [];
     promptsCsvContent: [],
@@ -22,6 +23,7 @@ export interface FlowState {
 }
 
 export const initialState: FlowState = {
+    adminFlowsMainTab: 0,
     flowList: [],
     uploadContentContacts: [],
     promptsCsvContent: [],

@@ -20,6 +20,7 @@ import AiWorkflowsEngineBuilderDashboard from "../components/ai/WorkflowBuilder"
 import {TwitterLogin} from "../components/login/TwitterLogin";
 import BizAutomationWizard from "../components/flows/Wizard";
 import LoadBalancingDashboard from "../components/loadbalancing/LoadBalancingDashboard";
+import AdminPanel from "../components/admin/flows/AdminPanel";
 
 export const App = () => {
     ReactGA.initialize([
@@ -45,7 +46,7 @@ export const App = () => {
                             <Route path="ai" element={<ProtectedLayout children={<AiWorkflowsDashboard />}/>}/>
                             <Route path="ai/workflow/builder" element={<ProtectedLayout children={<AiWorkflowsEngineBuilderDashboard />}/>}/>
                             <Route path="ai/workflow/wizard" element={<ProtectedLayout children={<BizAutomationWizard />}/>}/>
-                            <Route path="ai/admin" element={<InternalProtectedLayout children={<BizAutomationWizard />}/>}/>
+                            <Route path="ai/admin" element={<InternalProtectedLayout children={<AdminPanel />}/>}/>
                             <Route path="billing" element={<ProtectedLayout children={<Billing />}/>}/>
                             <Route path="access" element={<ProtectedLayout children={<Access />}/>}/>
                             <Route path="secrets" element={<ProtectedLayout children={<Secrets />}/>}/>

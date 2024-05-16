@@ -15,7 +15,7 @@ import {OrchestrationsAnalysis} from "../../redux/ai/ai.types.runs";
 import {WorkflowAnalysisRow} from "./WorkflowAnalysisRow";
 
 export function WorkflowAnalysisTable(props: any) {
-    const { csvExport } = props;
+    const { csvExport, isAdminPanel } = props;
     const [page, setPage] = React.useState(0);
     const openRunsRow = useSelector((state: any) => state.ai.openRunsRow);
     const orchDetails = useSelector((state: any) => state.ai.orchDetails);
@@ -31,7 +31,7 @@ export function WorkflowAnalysisTable(props: any) {
         const runId = workflows[index].orchestration.orchestrationStrID;
         try {
             setIsLoading(true);
-            if (isInternal) {
+            if (isInternal && isAdminPanel) {
                 const response = await aiApiGateway.getAdminRun(runId);
                 const runToUpdate: OrchestrationsAnalysis[] = response.data.filter((run: OrchestrationsAnalysis) => run.orchestration.orchestrationStrID === runId);
                 if (runToUpdate.length > 0) {
@@ -79,7 +79,7 @@ export function WorkflowAnalysisTable(props: any) {
         const fetchData = async (params: any) => {
             try {
                 setIsLoading(true); // Set loading to true
-                if (isInternal) {
+                if (isInternal && isAdminPanel) {
                     const response = await aiApiGateway.getAdminRunsUI();
                     dispatch(setRuns(response.data));
                 } else {

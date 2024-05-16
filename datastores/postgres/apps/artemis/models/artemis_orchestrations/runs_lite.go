@@ -146,7 +146,11 @@ func SelectAiSystemOrchestrationsUI(ctx context.Context, ou org_users.OrgUser, r
 				// todo alert?
 				rad = oj.TotalApiRequests
 			}
-			oj.Progress = (float64(mad+rad) / float64(oj.TotalApiRequests+oj.TotalApiRequests)) * float64(100)
+			if oj.TotalApiRequests+oj.TotalCsvCells == 0 {
+				oj.Progress = 100
+			} else {
+				oj.Progress = (float64(mad+rad) / float64(oj.TotalApiRequests+oj.TotalCsvCells)) * float64(100)
+			}
 		} else {
 			oj.Progress = 100
 		}

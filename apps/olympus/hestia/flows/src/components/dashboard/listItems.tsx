@@ -12,6 +12,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../../redux/store";
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import {
     setOpenAiPanel,
     setOpenAppsPanel,
@@ -57,13 +58,13 @@ export default function MainListItems() {
             }
         >
             <div>
-            <ListItemButton component={Link} onClick={handleClickAi} to="/ai">
-                <ListItemIcon>
-                    <GraphicEqIcon />
-                </ListItemIcon>
-                <ListItemText primary="AI" />
-                {openAiPanel ? <ExpandLess  onClick={handleClickAi}/> : <ExpandMore onClick={handleClickAi}/>}
-            </ListItemButton>
+                <ListItemButton component={Link} onClick={handleClickAi} to="/ai">
+                    <ListItemIcon>
+                        <GraphicEqIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="AI" />
+                    {openAiPanel ? <ExpandLess  onClick={handleClickAi}/> : <ExpandMore onClick={handleClickAi}/>}
+                </ListItemButton>
                 <Collapse in={openAiPanel} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
                         <ListItemButton sx={{ pl: 4 }} component={Link} to="/ai/workflow/builder">
@@ -81,105 +82,18 @@ export default function MainListItems() {
                             <ListItemText primary="Flow Wizard" />
                         </ListItemButton>
                     </List>
+                    {
+                        isInternal && (
+                            <ListItemButton sx={{ pl: 4 }} component={Link} to="/ai/admin">
+                                <ListItemIcon>
+                                    <AdminPanelSettingsIcon />
+                                </ListItemIcon>
+                                <ListItemText primary="Admin" />
+                            </ListItemButton>
+                        )
+                    }
                 </Collapse>
             </div>
-            {/*<ListItemButton component={Link} onClick={handleClickApps}  to="/apps">*/}
-            {/*    <ListItemIcon>*/}
-            {/*        <AppsIcon />*/}
-            {/*    </ListItemIcon>*/}
-            {/*    <ListItemText primary="Apps" />*/}
-            {/*    {openApps ? <ExpandLess onClick={handleClickApps} /> : <ExpandMore onClick={handleClickApps}/>}*/}
-            {/*</ListItemButton>*/}
-            {/*<Collapse in={openApps} timeout="auto" unmountOnExit>*/}
-            {/*    <List component="div" disablePadding>*/}
-            {/*        <ListItemButton sx={{ pl: 4 }} component={Link} to="/apps/builder">*/}
-            {/*            <ListItemIcon>*/}
-            {/*                <ConstructionIcon />*/}
-            {/*            </ListItemIcon>*/}
-            {/*            <ListItemText primary="Builder" />*/}
-            {/*        </ListItemButton>*/}
-            {/*    </List>*/}
-            {/*</Collapse>*/}
-            {/*<ListItemButton onClick={handleClickCompute} component={Link} to="/compute/search">*/}
-            {/*    <ListItemIcon>*/}
-            {/*        <ManageSearchIcon />*/}
-            {/*    </ListItemIcon>*/}
-            {/*    <ListItemText primary="Compute" />*/}
-            {/*    {openCompute ? <ExpandLess onClick={handleClickCompute} /> : <ExpandMore onClick={handleClickCompute}/>}*/}
-            {/*</ListItemButton>*/}
-            {/*<Collapse in={openCompute} timeout="auto" unmountOnExit>*/}
-            {/*    <List component="div" disablePadding>*/}
-            {/*        <ListItemButton sx={{ pl: 4 }} component={Link} to="/compute/summary">*/}
-            {/*            <ListItemIcon>*/}
-            {/*                <DnsIcon />*/}
-            {/*            </ListItemIcon>*/}
-            {/*            <ListItemText primary="Provisioned" />*/}
-            {/*        </ListItemButton>*/}
-            {/*    </List>*/}
-            {/*</Collapse>*/}
-            {/*<ListItemButton onClick={handleClickClusters} component={Link} to="/clusters">*/}
-            {/*    <ListItemIcon>*/}
-            {/*        <CloudIcon />*/}
-            {/*    </ListItemIcon>*/}
-            {/*    <ListItemText primary="Clusters"/>*/}
-            {/*    {openClusters ? <ExpandLess onClick={handleClickClusters} /> : <ExpandMore onClick={handleClickClusters}/>}*/}
-            {/*</ListItemButton>*/}
-            {/*<Collapse in={openClusters} timeout="auto" unmountOnExit>*/}
-            {/*    <List component="div" disablePadding>*/}
-            {/*        <ListItemButton sx={{ pl: 4 }} component={Link} to="/clusters/config">*/}
-            {/*            <ListItemIcon>*/}
-            {/*                <TuneIcon />*/}
-            {/*            </ListItemIcon>*/}
-            {/*            <ListItemText primary="Config" />*/}
-            {/*        </ListItemButton>*/}
-            {/*    </List>*/}
-            {/*</Collapse>*/}
-            {/*<ListItemButton component={Link} to="/loadbalancing/dashboard">*/}
-            {/*    <ListItemIcon>*/}
-            {/*        <SwapCallsIcon />*/}
-            {/*    </ListItemIcon>*/}
-            {/*    <ListItemText primary="Load Balancing" />*/}
-            {/*</ListItemButton>*/}
-            {/*<ListItemButton onClick={handleClickServices}>*/}
-            {/*    <ListItemIcon>*/}
-            {/*        <ViewListIcon />*/}
-            {/*    </ListItemIcon>*/}
-            {/*    <ListItemText primary="Services" />*/}
-            {/*    {openServices ? <ExpandLess /> : <ExpandMore />}*/}
-            {/*</ListItemButton>*/}
-            {/*<Collapse in={openServices} timeout="auto" unmountOnExit>*/}
-            {/*    <List component="div" disablePadding>*/}
-            {/*        {isInternal && (*/}
-            {/*                <div>*/}
-            {/*                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/mev">*/}
-            {/*                        <ListItemIcon>*/}
-            {/*                            <LeaderboardIcon />*/}
-            {/*                        </ListItemIcon>*/}
-            {/*                        <ListItemText primary="MEV" />*/}
-            {/*                    </ListItemButton>*/}
-            {/*                    <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/chatgpt">*/}
-            {/*                        <ListItemIcon>*/}
-            {/*                            <ChatIcon />*/}
-            {/*                        </ListItemIcon>*/}
-            {/*                        <ListItemText primary="ChatGPT" />*/}
-            {/*                    </ListItemButton>*/}
-            {/*                </div>*/}
-            {/*            )*/}
-            {/*        }*/}
-            {/*        <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/aws">*/}
-            {/*            <ListItemIcon>*/}
-            {/*                <AutoFixHighIcon />*/}
-            {/*            </ListItemIcon>*/}
-            {/*            <ListItemText primary="AWS Wizard" />*/}
-            {/*        </ListItemButton>*/}
-            {/*        <ListItemButton sx={{ pl: 4 }} component={Link} to="/services/ethereum/validators">*/}
-            {/*            <ListItemIcon>*/}
-            {/*                <MiscellaneousServicesIcon />*/}
-            {/*            </ListItemIcon>*/}
-            {/*            <ListItemText primary="Validators" />*/}
-            {/*        </ListItemButton>*/}
-            {/*    </List>*/}
-            {/*</Collapse>*/}
             <ListItemButton component={Link} to="/loadbalancing/dashboard">
                 <ListItemIcon>
                     <SwapCallsIcon />

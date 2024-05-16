@@ -1,12 +1,19 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {initialState, UpdateTaskRelationshipPayload} from "./flows.actions";
+import {RowIndexOpenMap} from "../ai/ai.types";
 
 const flowsSlice = createSlice({
     name: 'flows',
     initialState,
     reducers: {
+        setOpenAdminUserRow(state, action: PayloadAction<RowIndexOpenMap>) {
+            state.openAdminUserRow = action.payload;
+        },
         setFlowList: (state, action: PayloadAction<string[]>) => {
             state.flowList = action.payload;
+        },
+        setUserFlowStats: (state, action: PayloadAction<[]>) => {
+            state.userFlowStats = action.payload;
         },
         setAdminFlowsMainTab: (state, action: PayloadAction<number>) => {
             state.adminFlowsMainTab = action.payload;
@@ -80,7 +87,9 @@ export const {
     setContactsCsvFilename,
     setPromptFlowMap,
     setContactsFlowMap,
+    setOpenAdminUserRow,
     setFlowList,
+    setUserFlowStats,
     setAdminFlowsMainTab
 } = flowsSlice.actions;
 export default flowsSlice.reducer

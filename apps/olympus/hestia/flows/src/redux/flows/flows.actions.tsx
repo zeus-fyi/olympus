@@ -1,3 +1,5 @@
+import {RowIndexOpenMap} from "../ai/ai.types";
+
 export interface FlowState {
     adminFlowsMainTab: number;
     flowList: string[],
@@ -20,6 +22,8 @@ export interface FlowState {
     stageContactsOverrideMap: StageColMap;
     stageContactsMap: StageColMap;        // Added new field
     stagePromptMap: StagePromptMap;  // Added new field
+    userFlowStats: UserFlowStats[];
+    openAdminUserRow: RowIndexOpenMap;
 }
 
 export const initialState: FlowState = {
@@ -49,6 +53,8 @@ export const initialState: FlowState = {
     stageContactsOverrideMap: {},
     stagePromptMap: {},
     previewCount: 3,
+    userFlowStats: [],
+    openAdminUserRow: {},
 }
 
 export type UpdateTaskRelationshipPayload = {
@@ -76,4 +82,10 @@ export interface FlowAction {
     stagePromptMap: {};
     stageContactsMap:{};
     stageContactsOverrideMap: {};
+}
+
+export interface UserFlowStats {
+    orgID: string;
+    email: string;
+    flowCount: number;
 }

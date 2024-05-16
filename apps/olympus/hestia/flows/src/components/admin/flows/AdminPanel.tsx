@@ -1,10 +1,8 @@
 import * as React from 'react';
 import {useState} from 'react';
-import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import MuiAppBar, {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
@@ -20,56 +18,7 @@ import {AdminWorkflowViews} from "./AdminWorkflowViews";
 import authProvider from "../../../redux/auth/auth.actions";
 import {ZeusCopyright} from "../../copyright/ZeusCopyright";
 import MainListItems from "../../dashboard/listItems";
-
-const drawerWidth: number = 240;
-
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
-
-export const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-}));
-
-export const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }) => ({
-        '& .MuiDrawer-paper': {
-            position: 'relative',
-            whiteSpace: 'nowrap',
-            width: drawerWidth,
-            transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-            boxSizing: 'border-box',
-            ...(!open && {
-                overflowX: 'hidden',
-                transition: theme.transitions.create('width', {
-                    easing: theme.transitions.easing.sharp,
-                    duration: theme.transitions.duration.leavingScreen,
-                }),
-                width: theme.spacing(7),
-                [theme.breakpoints.up('sm')]: {
-                    width: theme.spacing(9),
-                },
-            }),
-        },
-    }),
-);
+import {AppBar, Drawer} from "./AdminHelpers";
 
 const mdTheme = createTheme();
 
@@ -85,18 +34,17 @@ function AdminDashboard() {
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedMainTab(newValue);
     }
+    // admin/dashboard/stats
     const handleLogout = async (event: any) => {
         event.preventDefault();
         await authProvider.logout()
         dispatch({type: 'LOGOUT_SUCCESS'})
         navigate('/login');
     }
-
-
     if (loading) {
         return <div>Loading...</div>;
     }
-
+    // getAdminDashboardStats
     return (
         <ThemeProvider theme={mdTheme}>
             <Box sx={{ display: 'flex' }}>

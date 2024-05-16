@@ -5,12 +5,12 @@ import {useDispatch, useSelector} from "react-redux";
 import {WorkflowAnalysisTable} from "../../flows/WorkflowAnalysisTable";
 import {setAdminFlowsMainTab} from "../../../redux/flows/flows.reducer";
 import Box from "@mui/material/Box";
+import {UserStatsTable} from "./user_stats/UserStatsTable";
 
 export function AdminWorkflowViews(props: any) {
     const mainTab = useSelector((state: any) => state.flows.adminFlowsMainTab);
     const [loading, setIsLoading] = React.useState(false);
     const dispatch = useDispatch();
-
     const handleMainTabChange = (event: React.SyntheticEvent, newValue: number) => {
         dispatch(setAdminFlowsMainTab(newValue));
     }
@@ -33,7 +33,9 @@ export function AdminWorkflowViews(props: any) {
             </Box>
             {
                 mainTab === 0 && (
-                    <div></div>
+                    <div>
+                        <UserStatsTable />
+                    </div>
                 )
             }
             {

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/zeus-fyi/olympus/datastores/postgres/apps"
 	hestia_test "github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/test"
 )
 
@@ -15,7 +16,8 @@ type UserStatsTestSuite struct {
 var ctx = context.Background()
 
 func (s *UserStatsTestSuite) TestInsertUser() {
-	us, err := SelectUserFlowStats(ctx, s.Ou)
+	apps.Pg.InitPG(ctx, s.Tc.ProdLocalDbPgconn)
+	us, err := SelectUserFlowStats(ctx)
 	s.Require().Nil(err)
 	s.Require().NotNil(us)
 }

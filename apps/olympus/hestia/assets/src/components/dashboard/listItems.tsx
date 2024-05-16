@@ -60,18 +60,18 @@ export default function MainListItems() {
             aria-labelledby="nested-list-subheader"
             subheader={
                 <ListSubheader component="div" id="nested-list-subheader">
-                    Zeusfyi Universal Cloud
+                    Zeusfyi
                 </ListSubheader>
             }
         >
             <div>
-            <ListItemButton component={Link} onClick={handleClickAi} to="/ai">
-                <ListItemIcon>
-                    <GraphicEqIcon />
-                </ListItemIcon>
-                <ListItemText primary="AI" />
-                {openAiPanel ? <ExpandLess  onClick={handleClickAi}/> : <ExpandMore onClick={handleClickAi}/>}
-            </ListItemButton>
+                <ListItemButton component={Link} onClick={handleClickAi} to="/ai">
+                    <ListItemIcon>
+                        <GraphicEqIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="AI" />
+                    {openAiPanel ? <ExpandLess  onClick={handleClickAi}/> : <ExpandMore onClick={handleClickAi}/>}
+                </ListItemButton>
                 <Collapse in={openAiPanel} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
                         <ListItemButton sx={{ pl: 4 }} component={Link} to="/ai/workflow/builder">

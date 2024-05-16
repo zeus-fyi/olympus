@@ -15,7 +15,6 @@ export function Results(props: any) {
     const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
     const [requestRunsStatus, setRequestRunsStatus] = useState('');
     const [requestRunsStatusError, setRequestRunsStatusError] = useState('');
-    const isInternalAuth = useSelector((state: any) => state.sessionState.isInternal);
     const [loading, setIsLoading] = React.useState(false);
     const dispatch = useDispatch();
     const runs = useSelector((state: any) => state.ai.runs);
@@ -116,7 +115,7 @@ export function Results(props: any) {
                         </Stack>
                     </Container>
                 }
-                <WorkflowAnalysisTable csvExport={true} />
+                <WorkflowAnalysisTable csvExport={true} isAdminPanel={false}/>
             </Box>
         </div>
     );

@@ -26,7 +26,6 @@ function convertUnixNanoToLocalTimeString(unixNano: string): string {
 export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, csvExport: boolean; open : boolean; handleOpen: any }) {
     const {csvExport, row, index, handleClick, checked, open, handleOpen } = props;
 
-
     return (
         <React.Fragment>
             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>

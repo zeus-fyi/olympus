@@ -163,6 +163,17 @@ class AiApiGateway {
         }
         return await zeusApi.get(url, config)
     }
+    async getAdminDashboardStats(): Promise<any> {
+        const url = `/v1/admin/dashboard/stats`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            withCredentials: true,
+        }
+        return await zeusApi.get(url, config)
+    }
     async getTasks(): Promise<any> {
         const url = `/v1/tasks/ai`;
         const sessionID = inMemoryJWT.getToken();

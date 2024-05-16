@@ -20,6 +20,8 @@ export function WorkflowAnalysisTable(props: any) {
     const openRunsRow = useSelector((state: any) => state.ai.openRunsRow);
     const orchDetails = useSelector((state: any) => state.ai.orchDetails);
     const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
+    const isInternal = useSelector((state: any) => state.sessionState.isInternal);
+
     const [rowsPerPage, setRowsPerPage] = React.useState(25);
     const [loading, setIsLoading] = React.useState(false);
     const workflows = useSelector((state: any) => state.ai.runs);
@@ -29,12 +31,21 @@ export function WorkflowAnalysisTable(props: any) {
         const runId = workflows[index].orchestration.orchestrationStrID;
         try {
             setIsLoading(true);
-            const response = await aiApiGateway.getRun(runId);
-            // Assuming response.data is an array of OrchestrationsAnalysis
-            const runToUpdate: OrchestrationsAnalysis[] = response.data.filter((run: OrchestrationsAnalysis) => run.orchestration.orchestrationStrID === runId);
-            if (runToUpdate.length > 0) {
-                // Assuming we want to update the orchDetails state with these details
-                dispatch(setOrchDetails({ [runId]: runToUpdate[0] }));  // Update orchDetails with the first item matching the criteria
+            if (isInternal) {
+                const response = await aiApiGateway.getAdminRun(runId);
+                const runToUpdate: OrchestrationsAnalysis[] = response.data.filter((run: OrchestrationsAnalysis) => run.orchestration.orchestrationStrID === runId);
+                if (runToUpdate.length > 0) {
+                    // Assuming we want to update the orchDetails state with these details
+                    dispatch(setOrchDetails({ [runId]: runToUpdate[0] }));  // Update orchDetails with the first item matching the criteria
+                }
+            } else {
+                const response = await aiApiGateway.getRun(runId);
+                // Assuming response.data is an array of OrchestrationsAnalysis
+                const runToUpdate: OrchestrationsAnalysis[] = response.data.filter((run: OrchestrationsAnalysis) => run.orchestration.orchestrationStrID === runId);
+                if (runToUpdate.length > 0) {
+                    // Assuming we want to update the orchDetails state with these details
+                    dispatch(setOrchDetails({ [runId]: runToUpdate[0] }));  // Update orchDetails with the first item matching the criteria
+                }
             }
         } catch (error) {
             console.log("error", error);
@@ -68,8 +79,13 @@ export function WorkflowAnalysisTable(props: any) {
         const fetchData = async (params: any) => {
             try {
                 setIsLoading(true); // Set loading to true
-                const response = await aiApiGateway.getRunsUI();
-                dispatch(setRuns(response.data));
+                if (isInternal) {
+                    const response = await aiApiGateway.getAdminRunsUI();
+                    dispatch(setRuns(response.data));
+                } else {
+                    const response = await aiApiGateway.getRunsUI();
+                    dispatch(setRuns(response.data));
+                }
             } catch (error) {
                 console.log("error", error);
             } finally {

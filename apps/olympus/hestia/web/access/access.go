@@ -22,8 +22,9 @@ func AccessRequestHandler(c echo.Context) error {
 }
 
 const (
-	TemporalOrgID = 7138983863666903883
-	SamsOrgID     = 1701381301753642000
+	TemporalOrgID   = 7138983863666903883
+	SamsOrgID       = 1701381301753642000
+	KevinFlowsOrgID = 1710298581127603000
 )
 
 func (a *AccessRequest) AuthCheck(c echo.Context) error {
@@ -46,7 +47,7 @@ func (a *AccessRequest) AuthCheck(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
 	isInternal := false
-	if ou.OrgID == TemporalOrgID || ou.OrgID == SamsOrgID {
+	if ou.OrgID == TemporalOrgID || ou.OrgID == SamsOrgID || ou.OrgID == KevinFlowsOrgID {
 		isInternal = true
 	}
 	resp.IsInternal = isInternal

@@ -15,6 +15,7 @@ export function Results(props: any) {
     const selectedRuns = useSelector((state: any) => state.ai.selectedRuns);
     const [requestRunsStatus, setRequestRunsStatus] = useState('');
     const [requestRunsStatusError, setRequestRunsStatusError] = useState('');
+    const isInternalAuth = useSelector((state: any) => state.sessionState.isInternal);
     const [loading, setIsLoading] = React.useState(false);
     const dispatch = useDispatch();
     const runs = useSelector((state: any) => state.ai.runs);
@@ -51,13 +52,45 @@ export function Results(props: any) {
 
     return (
         <div>
-            <Card sx={{ maxWidth: 320 }}>
-                <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large', fontWeight: 'thin', marginRight: '15px', color: '#151C2F' }}>
-                        Results
-                    </Typography>
-                </CardContent>
-            </Card>
+            <Stack direction={"row"} >
+                <Card sx={{ maxWidth: 320 }}>
+                    <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography gutterBottom variant="h5" component="div" style={{ fontSize: 'large', fontWeight: 'thin', marginRight: '15px', color: '#151C2F' }}>
+                            Results
+                        </Typography>
+                    </CardContent>
+                </Card>
+                {/*<Card sx={{ minWidth: 400, ml: 4 }}>*/}
+                {/*    <Box sx={{ ml: 4, mb: 2, mt: 2, mr: 4 }}>*/}
+                {/*        <FormControl fullWidth>*/}
+                {/*            <InputLabel id="platform-label">Orgs</InputLabel>*/}
+                {/*            <Select*/}
+                {/*                labelId="platform-label"*/}
+                {/*                id="platforms-input"*/}
+                {/*                // value={retrieval.retrievalItemInstruction?.retrievalPlatform}*/}
+                {/*                label="Platform"*/}
+                {/*                // onChange={(e) => {*/}
+                {/*                //     const updatedRetrieval = {*/}
+                {/*                //         ...retrieval,*/}
+                {/*                //         retrievalItemInstruction: {*/}
+                {/*                //             ...retrieval.retrievalItemInstruction,*/}
+                {/*                //             retrievalPlatform: e.target.value*/}
+                {/*                //         }*/}
+                {/*                //     };*/}
+                {/*                //     dispatch(setRetrieval(updatedRetrieval));*/}
+                {/*                // }}*/}
+                {/*            >*/}
+                {/*                <MenuItem value="api">API</MenuItem>*/}
+                {/*                <MenuItem value="entities">Entities</MenuItem>*/}
+                {/*                <MenuItem value="reddit">Reddit</MenuItem>*/}
+                {/*                <MenuItem value="twitter">Twitter</MenuItem>*/}
+                {/*                <MenuItem value="discord">Discord</MenuItem>*/}
+                {/*                <MenuItem value="telegram">Telegram</MenuItem>*/}
+                {/*            </Select>*/}
+                {/*        </FormControl>*/}
+                {/*    </Box>*/}
+                {/*</Card>*/}
+            </Stack>
             <Box sx={{ mt: 4 }}>
                 {requestRunsStatus != '' && (
                     <Container sx={{  mt: 2}}>

@@ -298,7 +298,7 @@ func Zeus() {
 	} else {
 		mw := middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"https://cloud.zeus.fyi", "https://api.zeus.fyi", "https://hestia.zeus.fyi", "https://flows.zeus.fyi",
-				"https://iris.zeus.fyi"},
+				"https://iris.zeus.fyi", "https://staging.flows.zeus.fyi", "https://api.flows.zeus.fyi"},
 			AllowMethods:     []string{echo.GET, echo.PUT, echo.POST, echo.DELETE, echo.OPTIONS},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "Access-Control-Allow-Headers", "X-CSRF-Token", "Accept-Encoding", "CloudCtxNsID"},
 			AllowCredentials: true,

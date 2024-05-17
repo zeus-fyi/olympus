@@ -49,8 +49,8 @@ func (t *CreateOrUpdateTaskRequest) CreateOrUpdateTask(c echo.Context) error {
 	if t.MarginBuffer < 0.2 {
 		t.MarginBuffer = 0.2
 	}
-	if t.MarginBuffer > 0.8 {
-		t.MarginBuffer = 0.8
+	if t.MarginBuffer > 0.9 {
+		t.MarginBuffer = 0.9
 	}
 
 	err := artemis_orchestrations.InsertTask(c.Request().Context(), &t.AITaskLibrary)

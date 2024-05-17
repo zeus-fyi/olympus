@@ -6,6 +6,7 @@ import {WorkflowAnalysisTable} from "../../flows/WorkflowAnalysisTable";
 import {setAdminFlowsMainTab} from "../../../redux/flows/flows.reducer";
 import Box from "@mui/material/Box";
 import {UserStatsTable} from "./user_stats/UserStatsTable";
+import {PodsPageTable} from "../../clusters/Pods";
 
 export function AdminWorkflowViews(props: any) {
     const mainTab = useSelector((state: any) => state.flows.adminFlowsMainTab);
@@ -29,6 +30,7 @@ export function AdminWorkflowViews(props: any) {
                 <Tabs value={mainTab} onChange={handleMainTabChange} aria-label="basic tabs">
                     <Tab label="Users" />
                     <Tab label="Workflows" />
+                    <Tab label="Debug" />
                 </Tabs>
             </Box>
             {
@@ -41,6 +43,11 @@ export function AdminWorkflowViews(props: any) {
             {
                 mainTab === 1 && (
                     <WorkflowAnalysisTable csvExport={true} isAdminPanel={true} />
+                )
+            }
+            {
+                mainTab === 2 && (
+                    <PodsPageTable id={'1715903995547997000'}/>
                 )
             }
         </div>

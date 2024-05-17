@@ -1,4 +1,3 @@
-import {useParams} from "react-router-dom";
 import * as React from "react";
 import {useEffect, useState} from "react";
 import {clustersApiGateway} from "../../gateway/clusters";
@@ -18,8 +17,8 @@ function createPodsData(
     return {podName, podPhase, containers};
 }
 
-export function PodsPageTable() {
-    const params = useParams();
+export function PodsPageTable(props: any) {
+    const {id} = props
     const [pods, setPods] = useState([{}]);
     const [code, setCode] = useState('');
     const [selectedContainers, setSelectedContainers] = useState<Array<string>>([]);
@@ -38,7 +37,7 @@ export function PodsPageTable() {
     };
     const onClickStreamLogs = async (podName: string, containerName: string) => {
         try {
-            let res: any = await clustersApiGateway.getClusterPodLogs(params.id, podName, containerName)
+            let res: any = await clustersApiGateway.getClusterPodLogs(id, podName, containerName)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
                 setCode(res.data)
@@ -49,7 +48,7 @@ export function PodsPageTable() {
     }
     const onDeletePod = async (podName: string) => {
         try {
-            let res: any = await clustersApiGateway.deletePod(params.id, podName)
+            let res: any = await clustersApiGateway.deletePod(id, podName)
             const statusCode = res.status;
             if (statusCode === 200 || statusCode === 204) {
                 setCode(res.data)
@@ -61,7 +60,7 @@ export function PodsPageTable() {
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
-                const response = await clustersApiGateway.getClusterPodsAudit(params.id);
+                const response = await clustersApiGateway.getClusterPodsAudit(params);
                 if (response.status !== 200) {
                     return;
                 }
@@ -75,7 +74,7 @@ export function PodsPageTable() {
             } catch (error) {
                 console.log("error", error);
             }}
-        fetchData(params).then(r =>
+        fetchData(id).then(r =>
             console.log("")
         );
     }, []);
@@ -85,7 +84,7 @@ export function PodsPageTable() {
     useEffect(() => {
         const fetchData = async (params: any) => {
             try {
-                const response = await clustersApiGateway.getClusterLogs(params.id);
+                const response = await clustersApiGateway.getClusterLogs(id);
                 if (response.status !== 200) {
                     return;
                 }
@@ -93,7 +92,7 @@ export function PodsPageTable() {
             } catch (error) {
                 console.log("error", error);
             }}
-        fetchData(params).then(r =>
+        fetchData(id).then(r =>
             console.log("")
         );
     }, []);

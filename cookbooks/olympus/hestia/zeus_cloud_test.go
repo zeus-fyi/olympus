@@ -17,6 +17,20 @@ func (t *ZeusCloudCookbookTestSuite) TestDeployZeusCloud() {
 	t.Require().Nil(err)
 }
 
+func (t *ZeusCloudCookbookTestSuite) TestUploadChartsFromClusterDefinition() {
+
+	_, rerr := FlowsStagingCloudClusterDef.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	t.Require().Nil(rerr)
+}
+func (t *ZeusCloudCookbookTestSuite) TestCreateClusterClass() {
+	gcd := FlowsStagingCloudClusterDef.BuildClusterDefinitions()
+	t.Assert().NotEmpty(gcd)
+	fmt.Println(gcd)
+
+	err := gcd.CreateClusterClassDefinitions(ctx, t.ZeusTestClient)
+	t.Require().Nil(err)
+
+}
 func (t *ZeusCloudCookbookTestSuite) TestZeusCloudClusterSetup() {
 	gcd := ZeusCloudClusterDef.BuildClusterDefinitions()
 	t.Assert().NotEmpty(gcd)

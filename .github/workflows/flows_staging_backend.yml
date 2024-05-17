@@ -1,30 +1,51 @@
-name: Build Flows Front End App
+name: Build Flows Staging Backend App
 
 on:
   push:
     paths:
-      - .github/workflows/flows.yml
-      - apps/olympus/hestia/**
+      - apps/olympus/zeus/**
+      - pkg/aegis/auth_startup/**
+      - pkg/aegis/sessions/**
+      - pkg/zeus/**
+      - pkg/hestia/**
+      - datastores/postgres/apps/zeus/**
+      - datastores/postgres/apps/hera/models/**
+      - datastores/s3/**
+      - docker/zeus/Dockerfile
+      - .github/workflows/zeus.yml
     branches:
       - main
+      - ai-triggers
+      - aws-eks-auto-cfg
       - add-flows
       - csv-merge
 
+# Configure a trust relationship on your Depot project for your git repository so you can use OIDC token auth between GHA and your Depot project.
 permissions:
   contents: read
   id-token: write
 
 env:
   REPO: registry.digitalocean.com/zeus-fyi
-  NAME: flows
+  NAME: staging-flows-backend
   TAG: latest
+  GO111MODULE: on
   GOOS: linux
   GOARCH: amd64
+  CGO_ENABLED: 0
+  GOCACHE: ~/go-build
+  GOMODCACHE: ~/go/pkg/mod
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
+      - name: Cache Go Modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: go-mod-${{ hashFiles('**/go.sum') }}
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -53,14 +74,20 @@ jobs:
           wget https://github.com/digitalocean/doctl/releases/download/v1.78.0/doctl-1.78.0-linux-amd64.tar.gz -O doctl.tar.gz
           tar xf doctl.tar.gz -C /usr/local/bin
 
-      - name: Build And Publish Flows App
+      - name: Build And Publish Flows Backend App
         run: |
           sed -i '/\.\/apps\/external\/go-ethereum/d' go.work
           doctl registry login -t ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           depot build \
-          -t ${{ env.REPO }}/${{ env.NAME }}:${{ env.TAG}} \
+          -t ${{ env.REPO }}/${{ env.NAME }}:latest \
+          --build-arg GOMODCACHE=${{ env.GOMODCACHE }} \
+          --build-arg GOCACHE=${{ env.GOCACHE }} \
+          --build-arg GOOS=${{ env.GOOS }} \
+          --build-arg CA_CRT="${{ secrets.CA_CRT }}" \
+          --build-arg CA_PEM="${{ secrets.DEV_CA_PEM }}" \
+          --build-arg CA_KEY="${{ secrets.DEV_CA_KEY }}" \
           --platform=${{ env.GOOS }}/${{ env.GOARCH }} \
           --token ${{ secrets.DEPOT_TOKEN }} \
           --provenance=false \
-          -f docker/flows/Dockerfile . --push
+          -f docker/zeus/Dockerfile . --push
 

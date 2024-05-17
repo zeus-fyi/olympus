@@ -73,7 +73,7 @@ func DeployNamespaceHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) e
 			}
 			namespace := request.Kns.CloudCtxNs.Namespace
 			switch namespace {
-			case "artemis", "hardhat", "zeus", "iris", "hestia", "hera", "aegis", "poseidon", "ephemeral-staking", "goerli-staking", "olympus", "mainnet-staking", "tyche", "keydb", "pandora":
+			case "flows", "artemis", "hardhat", "zeus", "iris", "hestia", "hera", "aegis", "poseidon", "ephemeral-staking", "goerli-staking", "olympus", "mainnet-staking", "tyche", "keydb", "pandora":
 				_, err = k.CopySecretToAnotherKns(ctx, fromKns, request.Kns.CloudCtxNs, "age-auth", nil)
 				if err != nil {
 					log.Err(err).Msg("DeploySecretsHandler")

@@ -6,14 +6,21 @@ import {aiApiGateway} from "../../gateway/ai";
 
 const CsvExportButton = (props: any) => {
     const [loading, setIsLoading] = React.useState(false);
-    const { name, orchStrID, results } = props;
+    const { name, orchStrID, results, isAdmin } = props;
     const onClickExportCsv = async (name: string, id: string) => {
         try {
             setIsLoading(true);
-            const response = await aiApiGateway.flowCsvExportRequest(id);
-            // Assuming response is the CSV string
-            const blob = new Blob([response.data], { type: 'text/csv' });
-            downloadBlobAsFile(`${name}`, blob);
+            if (isAdmin) {
+                const response = await aiApiGateway.adminFlowCsvExportRequest(id);
+                // Assuming response is the CSV string
+                const blob = new Blob([response.data], { type: 'text/csv' });
+                downloadBlobAsFile(`${name}`, blob);
+            } else {
+                const response = await aiApiGateway.flowCsvExportRequest(id);
+                // Assuming response is the CSV string
+                const blob = new Blob([response.data], { type: 'text/csv' });
+                downloadBlobAsFile(`${name}`, blob);
+            }
         } finally {
             setIsLoading(false);
         }

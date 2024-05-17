@@ -47,6 +47,8 @@ func AiV1Routes(e *echo.Group) *echo.Group {
 
 	// export flow csv
 	e.GET("/flow/:id/csv", FlowsExportCsvRequestHandler)
+	e.GET("/admin/flow/:id/csv", AdminFlowsExportCsvRequestHandler)
+
 	// runs
 	e.GET("/run/ai/:id", GetRunActionsRequestHandler)
 	e.GET("/runs/ai/ui", GetUIRunReportsRequestHandler)

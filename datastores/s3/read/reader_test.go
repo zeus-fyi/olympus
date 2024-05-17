@@ -10,16 +10,36 @@ import (
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/string_utils"
 	s32 "github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_s3"
+	filepaths2 "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 type S3ReadTestSuite struct {
 	s32.S3TestSuite
 }
 
+var ctx = context.Background()
+
+func (t *S3ReadTestSuite) TestReadV2() {
+	sr := NewS3ClientReader(t.OvhS3)
+	p := &filepaths2.Path{
+		PackageName: "",
+		DirIn:       "/debug/runs",
+		DirOut:      "/debug/runs",
+		FnIn:        "csv-analysis-064b2553-602a.json",
+		FnOut:       "",
+		Env:         "",
+	}
+	s3KeyValue := &s3.GetObjectInput{
+		Bucket: aws.String("flows"),
+		Key:    aws.String(p.FileInPath()),
+	}
+	b, err := sr.ReadBytesNoPanicV2(ctx, p, s3KeyValue)
+	t.Require().Nil(err)
+	t.Require().NotEmpty(b)
+}
+
 // TestRead, you'll need to set the secret values to run the test
 func (t *S3ReadTestSuite) TestRead() {
-	ctx := context.Background()
-
 	input := &s3.GetObjectInput{
 		Bucket: aws.String("zeus-fyi"),
 		Key:    aws.String("text.txt"),
@@ -40,8 +60,6 @@ func (t *S3ReadTestSuite) TestRead() {
 
 // TestRead, you'll need to set the secret values to run the test
 func (t *S3ReadTestSuite) TestReadOvh() {
-	ctx := context.Background()
-
 	input := &s3.GetObjectInput{
 		Bucket: aws.String("zeusfyi"),
 		Key:    aws.String("local-text.txt"),

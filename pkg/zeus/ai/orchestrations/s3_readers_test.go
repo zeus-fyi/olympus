@@ -32,8 +32,8 @@ func (t *ZeusWorkerTestSuite) TestS3WfDebugRunExport() {
 	err = json.Unmarshal(b.Bytes(), &mb)
 	t.Require().Nil(err)
 }
-func (t *ZeusWorkerTestSuite) TestGetGlobalEntitiesFromRef() {
 
+func (t *ZeusWorkerTestSuite) TestGetGlobalEntitiesFromRef() {
 	ueh := "b4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fab4d0c637a8768434cc90142d15c76ea1959ce3cfaba037fafad7232d0c9415fa"
 	refs := []artemis_entities.EntitiesFilter{
 		{

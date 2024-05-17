@@ -46,13 +46,14 @@ func (s *S3Client) ConnectS3SpacesOvh(ctx context.Context) error {
 	return err
 }
 
-func (s *S3Client) ListAllItemsInBucket(ctx context.Context, bucket string) ([]string, error) {
+func (s *S3Client) ListAllItemsInBucket(ctx context.Context, bucket string, maxKeys *int32) ([]string, error) {
 	// Initialize the list to store the names of the objects
 	var allObjectKeys []string
 
 	// Create the input configuration for listing objects
 	listObjectsInput := &s3.ListObjectsV2Input{
-		Bucket: &bucket,
+		Bucket:  &bucket,
+		MaxKeys: maxKeys,
 	}
 
 	// Create a paginator to handle listing of objects

@@ -240,3 +240,24 @@ func S3WfDebugRunExport(ctx context.Context, wfRunName string) (*bytes.Buffer, e
 	}
 	return buf, err
 }
+
+func S3WfRunDownloadWithPath(ctx context.Context, p *filepaths.Path) (*bytes.Buffer, error) {
+	if p == nil || p.FileOutPath() == "" {
+		return nil, fmt.Errorf("S3WfRunDownloadWithPath nil path out")
+	}
+	if err := s3SetupCheck(ctx); err != nil {
+		return nil, err
+	}
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("S3WfRunDownloadWithPath")
+	br := poseidon.S3BucketRequest{
+		BucketName: FlowsBucketName,
+		BucketKey:  p.FileOutPath(),
+	}
+	pos := poseidon.NewS3PoseidonLinux(athena.OvhS3Manager)
+	buf, err := pos.S3DownloadReadBytes(ctx, br)
+	if err != nil {
+		log.Err(err).Msg("S3WfRunDownloadWithPath: S3DownloadReadBytes error")
+		return nil, err
+	}
+	return buf, err
+}

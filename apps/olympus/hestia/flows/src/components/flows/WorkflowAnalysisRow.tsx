@@ -23,8 +23,8 @@ function convertUnixNanoToLocalTimeString(unixNano: string): string {
     return date.toLocaleString();
 }
 
-export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, csvExport: boolean; open : boolean; handleOpen: any }) {
-    const {csvExport, row, index, handleClick, checked, open, handleOpen } = props;
+export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index: number, handleClick: any, checked: boolean, csvExport: boolean; open : boolean; handleOpen: any, isAdmin: boolean }) {
+    const {csvExport, row, index, handleClick, checked, open, handleOpen, isAdmin } = props;
 
     return (
         <React.Fragment>
@@ -45,6 +45,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                         color="primary"
                     />
                 </TableCell>
+                <TableCell align="left">{row.orchestration.orchestrationStrID}</TableCell>
                 <TableCell align="left">{convertUnixNanoToLocalTimeString(row.orchestration.orchestrationStrID)}</TableCell>
                 <TableCell style={{ fontWeight: 'normal', color: 'white', minWidth: 50}}>
                     <LinearProgress variant="determinate" value={row.progress} />
@@ -55,7 +56,7 @@ export function WorkflowAnalysisRow(props: { row: OrchestrationsAnalysis, index:
                 <TableCell align="left">{row.orchestration.active ? 'Yes' : 'No'}</TableCell>
                 <TableCell align="left">{row.runCycles}</TableCell>
                 <TableCell align="left">{row.totalWorkflowTokenUsage}</TableCell>
-                { csvExport && <CsvExportButton name={row.orchestration.groupName} orchStrID={row.orchestration.orchestrationStrID} results={row}/>}
+                { csvExport && <CsvExportButton name={row.orchestration.groupName} orchStrID={row.orchestration.orchestrationStrID} results={row} isAdmin={isAdmin}/>}
             </TableRow>
             {row.aggregatedEvalResults && row.aggregatedEvalResults.length > 0 && (
                 <TableRow>

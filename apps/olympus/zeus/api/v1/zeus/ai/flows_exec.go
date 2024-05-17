@@ -1,6 +1,7 @@
 package zeus_v1_ai
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/artemis/models/artemis_orchestrations"
 	"github.com/zeus-fyi/olympus/datastores/postgres/apps/hestia/models/bases/org_users"
 	ai_platform_service_orchestrations "github.com/zeus-fyi/olympus/pkg/zeus/ai/orchestrations"
+	filepaths "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 type ExecFlowsActionsRequest struct {
@@ -24,13 +26,33 @@ func FlowsExecActionsRequestHandler(c echo.Context) error {
 	return request.ProcessFlow(c)
 }
 
+func captureInput(ctx context.Context, wfRunName string, payload any) error {
+	p := &filepaths.Path{
+		DirOut: fmt.Sprintf("/debug/runs/%s", wfRunName),
+		FnOut:  fmt.Sprintf("wf_entrypoint.json"),
+	}
+	err := ai_platform_service_orchestrations.S3WfRunUploadWithPath(ctx, p, payload)
+	if err != nil {
+		log.Err(err).Interface("payload", payload).Msg("captureInput: S3WfRunUploadWithPath failed")
+		return err
+	}
+	return nil
+}
+
 func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	_, err := w.SetupFlow(c.Request().Context(), ou)
+	wfName := "csv-analysis"
+	wfID := ai_platform_service_orchestrations.CreateExecAiWfId(wfName)
+	err := captureInput(c.Request().Context(), wfID, w)
+	if err != nil {
+		log.Err(err).Interface("w", w).Msg("SaveImport failed")
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	_, err = w.SetupFlow(c.Request().Context(), ou)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
 		return c.JSON(http.StatusBadRequest, err.Error())
@@ -70,7 +92,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		resp = append(resp, resp2...)
 		var wfExecParams artemis_orchestrations.WorkflowExecParams
 		for ri, _ := range resp {
-			wfName := resp[ri].WorkflowTemplate.WorkflowName
+			wfName = resp[ri].WorkflowTemplate.WorkflowName
 			if ve, wok := w.WorkflowEntitiesOverrides[wfName]; wok {
 				resp[ri].WorkflowOverrides.WorkflowEntities = ve
 			} else {
@@ -118,10 +140,11 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		}
 
 		wfExecParams.WorkflowOverrides.IsUsingFlows = true
-		wfExecParams.WorkflowTemplate.WorkflowName = "csv-analysis"
+		wfExecParams.WorkflowTemplate.WorkflowName = wfName
+		wfExecParams.WorkflowOverrides.WorkflowRunName = wfID
 		wfExecParams.WorkflowTemplate.WorkflowGroup = w.ContactsCsvFilename
 		wfExecParams.WorkflowOverrides.TotalBillableCsvCells = w.CsvBillingCount
-		rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteRunAiWorkflowProcess(c.Request().Context(), ou, wfExecParams)
+		rid, err = ai_platform_service_orchestrations.ZeusAiPlatformWorker.ExecuteFlowRunAiWorkflowProcess(c.Request().Context(), ou, wfExecParams)
 		if err != nil {
 			log.Err(err).Interface("ou", ou).Interface("WorkflowExecParams", resp).Msg("WorkflowsActionsRequestHandler: ExecuteRunAiWorkflowProcess failed")
 			return c.JSON(http.StatusInternalServerError, nil)

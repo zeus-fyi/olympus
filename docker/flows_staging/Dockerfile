@@ -10,6 +10,8 @@ RUN npm ci
 
 # Copy the rest of the application code into the container
 COPY apps/olympus/hestia/flows/ ./
+RUN rm ./.env.production
+RUN mv ./.env.staging ./.env.production
 
 # Build the React app for production
 RUN npm run build --nomaps

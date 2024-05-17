@@ -1,4 +1,4 @@
-name: Build Flows Staging App
+name: Build Flows Front End Staging App
 
 on:
   push:

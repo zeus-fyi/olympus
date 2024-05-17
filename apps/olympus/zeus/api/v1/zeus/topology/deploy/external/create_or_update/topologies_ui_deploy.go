@@ -238,6 +238,9 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 			if ou.OrgID == 7138983863666903883 {
 				ovhContext = hestia_ovhcloud.OvhInternalContext
 				switch t.NamespaceAlias {
+				case "info-flows-staging":
+					appTaint = false
+					namespace = "info-flows-staging"
 				case "flows":
 					appTaint = false
 					namespace = "flows"

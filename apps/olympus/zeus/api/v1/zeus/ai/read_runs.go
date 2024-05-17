@@ -81,7 +81,6 @@ func GetUIAdminRunReportsRequestHandler(c echo.Context) error {
 	return request.AdminUIGetRuns(c)
 }
 
-// TemporalOrgID   = 7138983863666903883
 func (w *RunsActionsRequest) AdminUIGetRuns(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
@@ -131,7 +130,6 @@ func GetAdminRunActionsRequestHandler(c echo.Context) error {
 		log.Err(err).Msg("invalid ID parameter")
 		return c.JSON(http.StatusBadRequest, "invalid ID parameter")
 	}
-
 	request := new(GetRunsActionsRequest)
 	if err = c.Bind(request); err != nil {
 		return err
@@ -161,7 +159,6 @@ func (w *GetRunsActionsRequest) GetAdminRun(c echo.Context, id int) error {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	for oi, ojv := range ojsRuns {
 		pcUsed := 0
 		cmpUsed := 0
@@ -241,7 +238,6 @@ func (w *GetRunsActionsRequest) GetRun(c echo.Context, id int) error {
 		log.Err(err).Msg("failed to get runs")
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
 	for oi, ojv := range ojsRuns {
 		pcUsed := 0
 		cmpUsed := 0

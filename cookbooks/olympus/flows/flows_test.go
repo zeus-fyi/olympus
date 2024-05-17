@@ -26,6 +26,12 @@ func (t *ZeusCookbookTestSuite) SetupTest() {
 	olympus_cookbooks.ChangeToCookbookDir()
 }
 
+func (t *ZeusCookbookTestSuite) TestUploadChartsFromClusterDefinition() {
+	cd := flowsClusterDefinition
+
+	_, rerr := cd.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
+	t.Require().Nil(rerr)
+}
 func (t *ZeusCookbookTestSuite) TestCreateClusterClass() {
 	cd := flowsClusterDefinition
 	gcd := cd.BuildClusterDefinitions()
@@ -35,8 +41,6 @@ func (t *ZeusCookbookTestSuite) TestCreateClusterClass() {
 	err := gcd.CreateClusterClassDefinitions(ctx, t.ZeusTestClient)
 	t.Require().Nil(err)
 
-	_, rerr := cd.UploadChartsFromClusterDefinition(ctx, t.ZeusTestClient, true)
-	t.Require().Nil(rerr)
 }
 
 func TestZeusCookbookTestSuite(t *testing.T) {

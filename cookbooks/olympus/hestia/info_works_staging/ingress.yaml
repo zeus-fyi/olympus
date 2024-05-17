@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "info-flows-staging"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - secretName: info-flows-staging-tls
+      hosts:
+        - staging.flows.zeus.fyi
+  rules:
+    - host: staging.flows.zeus.fyi
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: info-flows-staging
+                port:
+                  number: 80

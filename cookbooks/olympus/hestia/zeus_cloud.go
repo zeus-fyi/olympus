@@ -26,6 +26,32 @@ var (
 			"info-flows": ZeusCloudSkeletonBaseConfig,
 		},
 	}
+	clusterClassNameStaging     = "info-flows-staging"
+	FlowsStagingCloudClusterDef = zeus_cluster_config_drivers.ClusterDefinition{
+		ClusterClassName: clusterClassNameStaging,
+		ComponentBases:   FlowsStagingComponentBases,
+	}
+	FlowsStagingComponentBases = map[string]zeus_cluster_config_drivers.ComponentBaseDefinition{
+		"info-flows-staging": FlowsStagingComponentBase,
+	}
+	FlowsStagingComponentBase = zeus_cluster_config_drivers.ComponentBaseDefinition{
+		SkeletonBases: map[string]zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+			"info-flows-staging": FlowsStagingSkeletonBaseConfig,
+		},
+	}
+	FlowsStagingSkeletonBaseConfig = zeus_cluster_config_drivers.ClusterSkeletonBaseDefinition{
+		SkeletonBaseChart:         zeus_req_types.TopologyCreateRequest{},
+		SkeletonBaseNameChartPath: FlowsStagingChartPath,
+	}
+	FlowsStagingChartPath = filepaths.Path{
+		PackageName: "",
+		DirIn:       "./olympus/hestia/info_works_staging",
+		DirOut:      "./olympus/outputs",
+		FnIn:        "info-flows-staging", // filename for your gzip workload
+		FnOut:       "",
+		Env:         "",
+		FilterFiles: &strings_filter.FilterOpts{},
+	}
 	ZeusCloudCloudCtxNs = zeus_common_types.CloudCtxNs{
 		CloudProvider: "do",
 		Region:        "sfo3",

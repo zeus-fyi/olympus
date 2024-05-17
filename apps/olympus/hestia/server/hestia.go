@@ -351,7 +351,7 @@ func Hestia() {
 				"https://api.twitter.com/2/oauth2/token",
 				"https://twitter.com/", "https://twitter.com/i/oauth2", "https://twitter.com/i/oauth2/authorize",
 				"https://iris.zeus.fyi", "https://flows.zeus.fyi", "https://api.flows.zeus.fyi",
-				"https://quicknode.com",
+				"https://quicknode.com", "https://staging.flows.zeus.fyi.com",
 				"https://accounts.google.com", "https://oauth2.googleapis.com",
 				"http://promql.promql-edc89f30.svc.cluster.local",
 				"https://oauth.reddit.com",

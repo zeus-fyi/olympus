@@ -241,6 +241,9 @@ func (t *TopologyDeployUIRequest) DeploySetupClusterTopology(c echo.Context) err
 				case "info-flows-staging":
 					appTaint = false
 					namespace = "info-flows-staging"
+				case "flows-staging":
+					appTaint = false
+					namespace = "flows-staging"
 				case "flows":
 					appTaint = false
 					namespace = "flows"

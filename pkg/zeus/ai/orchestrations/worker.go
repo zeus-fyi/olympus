@@ -14,7 +14,8 @@ type ZeusAiPlatformServicesWorker struct {
 }
 
 var (
-	ZeusAiPlatformWorker ZeusAiPlatformServicesWorker
+	ZeusAiPlatformWorker  ZeusAiPlatformServicesWorker
+	ZeusAiPlatformWorker2 ZeusAiPlatformServicesWorker
 )
 
 const (
@@ -37,5 +38,24 @@ func InitZeusAiServicesWorker(ctx context.Context, temporalAuthCfg temporal_auth
 	w.AddActivities(activityDef.GetActivities())
 	ZeusAiPlatformWorker.Worker = w
 	ZeusAiPlatformWorker.TemporalClient = tc
+	return
+}
+
+func InitFlowsServicesWorker(ctx context.Context, temporalAuthCfg temporal_auth.TemporalAuth) {
+	log.Info().Msg("Zeus: InitZeusAiServicesWorker")
+	tc, err := temporal_base.NewTemporalClient(temporalAuthCfg)
+	if err != nil {
+		log.Err(err).Msg("InitZeusAiServicesWorker: NewTemporalClient failed")
+		misc.DelayedPanic(err)
+	}
+	taskQueueName := ZeusAiPlatformServicesTaskQueue
+	w := temporal_base.NewWorker(taskQueueName)
+	activityDef := NewZeusAiPlatformActivities()
+	wf := NewZeusPlatformServiceWorkflows()
+
+	w.AddWorkflows(wf.GetWorkflows())
+	w.AddActivities(activityDef.GetActivities())
+	ZeusAiPlatformWorker2.Worker = w
+	ZeusAiPlatformWorker2.TemporalClient = tc
 	return
 }

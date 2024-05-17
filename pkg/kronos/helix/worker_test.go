@@ -19,8 +19,8 @@ func (t *KronosWorkerTestSuite) SetupTest() {
 
 func (t *KronosWorkerTestSuite) TestKronosHelixPattern() {
 	ta := t.Tc.DevTemporalAuth
-	ns := "kronos.ngb72"
-	hp := "kronos.ngb72.tmprl.cloud:7233"
+	ns := "production-flows.ngb72"
+	hp := "production-flows.ngb72.tmprl.cloud:7233"
 	ta.Namespace = ns
 	ta.HostPort = hp
 	InitKronosHelixWorker(ctx, ta)

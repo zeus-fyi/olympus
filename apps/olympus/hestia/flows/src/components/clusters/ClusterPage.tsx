@@ -39,6 +39,7 @@ function createTopologyData(
 
 function ClustersPageContent() {
     const [open, setOpen] = React.useState(true);
+    const params = useParams();
 
     const toggleDrawer = () => {
         setOpen(!open);
@@ -139,7 +140,7 @@ function ClustersPageContent() {
                         <ClustersPageTable />
                     </Container>
                     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                        <PodsPageTable />
+                        <PodsPageTable id={params.id}/>
                     </Container>
                 </Box>
             </Box>

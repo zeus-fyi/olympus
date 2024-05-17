@@ -1,10 +1,12 @@
 package zeus_core
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 	strings_filter "github.com/zeus-fyi/zeus/pkg/utils/strings"
@@ -37,5 +39,18 @@ func (k *K8Util) GetPodLogs(ctx context.Context, name string, kns zeus_common_ty
 	if err != nil {
 		return buf.Bytes(), err
 	}
-	return buf.Bytes(), nil
+	// Filter the logs
+	filteredBuf := new(bytes.Buffer)
+	scanner := bufio.NewScanner(buf)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if !strings.Contains(line, `user_agent":"kube-probe`) {
+			filteredBuf.WriteString(line + "\n")
+		}
+	}
+	if err = scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return filteredBuf.Bytes(), nil
 }

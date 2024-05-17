@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: "nginx"
   tls:
-    - secretName: flows-tls
+    - secretName: flows-api-tls
       hosts:
         - api.flows.zeus.fyi
   rules:

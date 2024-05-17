@@ -48,6 +48,22 @@ func DeployIngressHandlerWrapper(k autok8s_core.K8Util) func(c echo.Context) err
 					}
 				}
 			}
+			if request.Kns.CloudCtxNs.CloudProvider == "ovh" && request.Kns.CloudCtxNs.Context == "zeusfyi" && request.Kns.Namespace == "flows" {
+				ns := request.Kns.CloudCtxNs.Namespace
+				if request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.Rules != nil {
+					for ind, _ := range request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.Rules {
+						request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.Rules[ind].Host = fmt.Sprintf("api.%s.zeus.fyi", ns)
+					}
+				}
+				if request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.TLS != nil {
+					for ind, _ := range request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.TLS {
+						for ind2, _ := range request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.TLS[ind].Hosts {
+							request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.TLS[ind].Hosts[ind2] = fmt.Sprintf("api.%s.zeus.fyi", ns)
+						}
+						request.Kns.TopologyBaseInfraWorkload.Ingress.Spec.TLS[ind].SecretName = fmt.Sprintf("%s-api-tls", ns)
+					}
+				}
+			}
 			log.Debug().Interface("kns", request.Kns).Msg("DeployIngressHandler: CreateIngressIfVersionLabelChangesOrDoesNotExist")
 			_, err := k.CreateIngressIfVersionLabelChangesOrDoesNotExist(ctx, request.Kns.CloudCtxNs, request.Kns.TopologyBaseInfraWorkload.Ingress, nil)
 			if err != nil {

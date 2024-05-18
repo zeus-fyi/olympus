@@ -209,10 +209,12 @@ func S3WfRunExport(ctx context.Context, ou org_users.OrgUser, wfRunName string, 
 		log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
 		return nil, err
 	}
-	err = json.Unmarshal(buf.Bytes(), &ue)
-	if err != nil {
-		log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
-		return nil, err
+	if len(buf.Bytes()) > 0 {
+		err = json.Unmarshal(buf.Bytes(), &ue)
+		if err != nil {
+			log.Err(err).Msg("gs3globalWf: S3DownloadReadBytes error")
+			return nil, err
+		}
 	}
 	return ue, err
 }

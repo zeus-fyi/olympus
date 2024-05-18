@@ -222,7 +222,7 @@ func deleteFromS3(ctx context.Context, p *filepaths.Path) error {
 }
 
 func S3WfRunUploadWithPath(ctx context.Context, p *filepaths.Path, payload any) error {
-	if p == nil || p.FileOutPath() == "" {
+	if p == nil || p.FileInPath() == "" {
 		return fmt.Errorf("S3WfRunUploadWithPath nil path out")
 	}
 	if err := s3SetupCheck(ctx); err != nil {

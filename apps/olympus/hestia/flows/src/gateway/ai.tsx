@@ -292,6 +292,7 @@ class AiApiGateway {
             headers: {
                 'Authorization': `Bearer ${sessionID}`
             },
+            responseType: 'blob' as const,  // Ensures that TypeScript treats this as a literal type that matches the expected type.
             withCredentials: true,
         };
         return await zeusApi.get(url, config)

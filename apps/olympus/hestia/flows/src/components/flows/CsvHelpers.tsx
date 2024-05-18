@@ -12,8 +12,11 @@ const CsvExportButton = (props: any) => {
             setIsLoading(true);
             if (isAdmin) {
                 const response = await aiApiGateway.adminFlowCsvExportRequest(id);
-                // Assuming response is the CSV string
-                const blob = new Blob([response.data], { type: 'text/csv' });
+                const rt = response.headers['content-type']
+                if (rt === 'application/zip') {
+                    name += '.zip'
+                }
+                const blob = new Blob([response.data], { type: rt});
                 downloadBlobAsFile(`${name}`, blob);
             } else {
                 const response = await aiApiGateway.flowCsvExportRequest(id);

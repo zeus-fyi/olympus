@@ -1,6 +1,8 @@
 package zeus_v1_ai
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -91,28 +93,57 @@ func AdminFlowsExportCsvRequestHandler(c echo.Context) error {
 	if ou.OrgID != 1710298581127603000 && ou.OrgID != 7138983863666903883 {
 		return c.JSON(http.StatusUnauthorized, nil)
 	}
-	ueSlice, err := ExportRunCsvRequest2(c.Request().Context(), ou, id)
+	gr, err := ExportRunCsvRequest2(c.Request().Context(), ou, id)
 	if err != nil {
 		log.Err(err).Msg("invalid ID parameter")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-	for _, ue := range ueSlice {
+	// Close the zip writer to finalize the zip file
+	// Set response headers for a gzip file
+	// Set response headers for a gzip file
+	buf := new(bytes.Buffer)
+
+	// Create a new zip archive.
+	zipWriter := zip.NewWriter(buf)
+
+	// Iterate over your entities and add them to the zip archive.
+	for _, ue := range gr.Entities {
 		for _, v := range ue.MdSlice {
 			if v.TextData == nil {
 				continue
 			}
-			c.Response().Header().Set("Content-Type", "text/csv")
-			c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.csv"`, ue.Nickname))
-			_, err = c.Response().Write([]byte(*v.TextData))
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, nil)
+			// Create a file within the zip archive.
+			f, ferr := zipWriter.Create(ue.Nickname + ".csv")
+			if ferr != nil {
+				return ferr
+			}
+			// Write the file contents.
+			if _, err = f.Write([]byte(*v.TextData)); err != nil {
+				return err
 			}
 		}
+	}
+	err = zipWriter.Close()
+	if err != nil {
+		return err
+	}
+	// Set the content type and content disposition headers to serve the zip file.
+	c.Response().Header().Set("Content-Type", "application/zip")
+	c.Response().Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.zip"`, gr.Name))
+	// Write the zip content to the response.
+	_, err = c.Response().Write(buf.Bytes())
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return nil
 }
 
-func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) ([]artemis_entities.UserEntity, error) {
+type ExportGroup struct {
+	Name     string
+	Entities []artemis_entities.UserEntity
+}
+
+func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) (*ExportGroup, error) {
 	ojsRuns, err := artemis_orchestrations.AdminSelectAiSystemOrchestrations(ctx, ou, id)
 	if err != nil {
 		log.Err(err).Msg("failed to get runs")
@@ -126,8 +157,6 @@ func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) ([]
 	//ojr := artemis_orchestrations.OrchestrationsAnalysis{}
 	//ojr.OrchestrationName = "test-wf"
 	log.Info().Interface("oj.GroupName", ojr.GroupName).Msg("ExportRunCsvRequest")
-	var ueSlice []artemis_entities.UserEntity
-
 	ue := artemis_entities.UserEntity{
 		Nickname: ojr.OrchestrationName,
 		Platform: "csv-exports",
@@ -135,6 +164,10 @@ func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) ([]
 	_, err = ai_platform_service_orchestrations.S3WfRunExport(ctx, ou, ojr.OrchestrationName, &ue)
 	if err != nil {
 		return nil, err
+	}
+	gr := &ExportGroup{
+		Name:     ojr.GroupName,
+		Entities: []artemis_entities.UserEntity{},
 	}
 	ue.Nickname = ojr.GroupName
 	p := &filepaths.Path{
@@ -163,7 +196,7 @@ func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) ([]
 				},
 			},
 		}
-		ueSlice = append(ueSlice, ueInputs)
+		gr.Entities = append(gr.Entities, ueInputs)
 		uePrompts := artemis_entities.UserEntity{
 			Nickname: fmt.Sprintf("%s_prompts", ojr.GroupName),
 			Platform: "csv-exports",
@@ -173,8 +206,8 @@ func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) ([]
 				},
 			},
 		}
-		ueSlice = append(ueSlice, uePrompts)
+		gr.Entities = append(gr.Entities, uePrompts)
 	}
-	ueSlice = append(ueSlice, ue)
-	return ueSlice, nil
+	gr.Entities = append(gr.Entities, ue)
+	return gr, nil
 }

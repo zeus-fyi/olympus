@@ -29,6 +29,8 @@ func FlowsExecActionsRequestHandler(c echo.Context) error {
 func captureInput(ctx context.Context, wfRunName string, payload any) error {
 	p := &filepaths.Path{
 		DirOut: fmt.Sprintf("/debug/runs/%s", wfRunName),
+		FnIn:   fmt.Sprintf("wf_entrypoint.json"),
+		DirIn:  fmt.Sprintf("/debug/runs/%s", wfRunName),
 		FnOut:  fmt.Sprintf("wf_entrypoint.json"),
 	}
 	err := ai_platform_service_orchestrations.S3WfRunUploadWithPath(ctx, p, payload)
@@ -39,14 +41,15 @@ func captureInput(ctx context.Context, wfRunName string, payload any) error {
 	return nil
 }
 
+// csv-analysis-27be145d-e7d2
 func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 	ou, ok := c.Get("orgUser").(org_users.OrgUser)
 	if !ok {
 		log.Info().Interface("ou", ou)
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	wfName := "csv-analysis"
-	wfID := ai_platform_service_orchestrations.CreateExecAiWfId(wfName)
+	wfBaseName := "csv-analysis"
+	wfID := ai_platform_service_orchestrations.CreateExecAiWfId(wfBaseName)
 	err := captureInput(c.Request().Context(), wfID, w)
 	if err != nil {
 		log.Err(err).Interface("w", w).Msg("SaveImport failed")
@@ -92,7 +95,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		resp = append(resp, resp2...)
 		var wfExecParams artemis_orchestrations.WorkflowExecParams
 		for ri, _ := range resp {
-			wfName = resp[ri].WorkflowTemplate.WorkflowName
+			wfName := resp[ri].WorkflowTemplate.WorkflowName
 			if ve, wok := w.WorkflowEntitiesOverrides[wfName]; wok {
 				resp[ri].WorkflowOverrides.WorkflowEntities = ve
 			} else {
@@ -140,7 +143,7 @@ func (w *ExecFlowsActionsRequest) ProcessFlow(c echo.Context) error {
 		}
 
 		wfExecParams.WorkflowOverrides.IsUsingFlows = true
-		wfExecParams.WorkflowTemplate.WorkflowName = wfName
+		wfExecParams.WorkflowTemplate.WorkflowName = wfBaseName
 		wfExecParams.WorkflowOverrides.WorkflowRunName = wfID
 		wfExecParams.WorkflowTemplate.WorkflowGroup = w.ContactsCsvFilename
 		wfExecParams.WorkflowOverrides.TotalBillableCsvCells = w.CsvBillingCount

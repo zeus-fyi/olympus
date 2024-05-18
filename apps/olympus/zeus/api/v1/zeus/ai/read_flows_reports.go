@@ -113,7 +113,7 @@ func AdminFlowsExportCsvRequestHandler(c echo.Context) error {
 				continue
 			}
 			// Create a file within the zip archive.
-			f, ferr := zipWriter.Create(ue.Nickname + ".csv")
+			f, ferr := zipWriter.Create(ue.Nickname)
 			if ferr != nil {
 				return ferr
 			}
@@ -188,7 +188,7 @@ func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) (*E
 			return nil, err
 		}
 		ueInputs := artemis_entities.UserEntity{
-			Nickname: fmt.Sprintf("%s_inputs", ojr.GroupName),
+			Nickname: fmt.Sprintf("inputs_%s", ojr.GroupName),
 			Platform: "csv-exports",
 			MdSlice: []artemis_entities.UserEntityMetadata{
 				{
@@ -198,7 +198,7 @@ func ExportRunCsvRequest2(ctx context.Context, ou org_users.OrgUser, id int) (*E
 		}
 		gr.Entities = append(gr.Entities, ueInputs)
 		uePrompts := artemis_entities.UserEntity{
-			Nickname: fmt.Sprintf("%s_prompts", ojr.GroupName),
+			Nickname: fmt.Sprintf("prompts_%s", ojr.GroupName),
 			Platform: "csv-exports",
 			MdSlice: []artemis_entities.UserEntityMetadata{
 				{

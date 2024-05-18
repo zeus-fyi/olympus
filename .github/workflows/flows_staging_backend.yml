@@ -14,10 +14,7 @@ on:
       - docker/zeus/Dockerfile
       - .github/workflows/zeus.yml
     branches:
-      - main
-      - ai-triggers
-      - aws-eks-auto-cfg
-      - add-flows
+      - staging
       - csv-merge
 
 # Configure a trust relationship on your Depot project for your git repository so you can use OIDC token auth between GHA and your Depot project.

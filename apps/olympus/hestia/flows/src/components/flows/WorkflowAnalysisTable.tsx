@@ -139,6 +139,7 @@ export function WorkflowAnalysisTable(props: any) {
                             />
                         </TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} ></TableCell>
+                        <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run ID</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Run Start</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white', minWidth: 50}}>Progress</TableCell>
                         <TableCell style={{ fontWeight: 'normal', color: 'white'}} >Name</TableCell>
@@ -164,6 +165,7 @@ export function WorkflowAnalysisTable(props: any) {
                                 index={index}
                                 csvExport={csvExport}
                                 handleClick={handleClick}
+                                isAdmin={isInternal && isAdminPanel}
                                 checked={selectedRuns.indexOf(index) >= 0}
                             />
                         );

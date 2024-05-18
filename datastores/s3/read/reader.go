@@ -15,6 +15,7 @@ import (
 	s3base "github.com/zeus-fyi/olympus/datastores/s3"
 	"github.com/zeus-fyi/olympus/pkg/utils/file_io/lib/v0/filepaths"
 	"github.com/zeus-fyi/olympus/pkg/utils/misc"
+	filepaths2 "github.com/zeus-fyi/zeus/pkg/utils/file_io/lib/v0/paths"
 )
 
 type S3ClientReader struct {
@@ -76,6 +77,28 @@ func (s *S3ClientReader) ReadBytes(ctx context.Context, p *filepaths.Path, s3Key
 		misc.DelayedPanic(err)
 	}
 	return buf
+}
+
+func (s *S3ClientReader) ReadBytesNoPanicV2(ctx context.Context, p *filepaths2.Path, s3KeyValue *s3.GetObjectInput) (*bytes.Buffer, error) {
+	if p == nil {
+		panic(errors.New("need to include a path"))
+	}
+
+	log.Info().Msg("Zeus: S3ClientReader, downloading bucket object")
+	buf := &bytes.Buffer{}
+
+	downloader := manager.NewDownloader(s.AwsS3Client)
+	downloader.Concurrency = 1
+
+	w := FakeWriterAt{w: buf}
+	_, err := downloader.Download(ctx, w, s3KeyValue)
+
+	if err != nil {
+		log.Err(err).Msg("ReadBytesNoPanic")
+		return buf, nil
+	}
+
+	return buf, err
 }
 
 func (s *S3ClientReader) ReadBytesNoPanic(ctx context.Context, p *filepaths.Path, s3KeyValue *s3.GetObjectInput) (*bytes.Buffer, error) {

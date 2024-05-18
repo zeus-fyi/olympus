@@ -45,6 +45,7 @@ var (
 	authKeysCfg     auth_keys_config.AuthKeysCfg
 	temporalAuthCfg temporal_auth.TemporalAuth
 	env             string
+	appConfig       string
 	awsRegion       = "us-west-1"
 	awsAuthCfg      = aegis_aws_auth.AuthAWS{
 		Region:    awsRegion,
@@ -243,7 +244,12 @@ func Zeus() {
 			misc.DelayedPanic(err)
 		}
 	}
-
+	if appConfig == "flows" {
+		ns := "production-flows.ngb72"
+		hp := "production-flows.ngb72.tmprl.cloud:7233"
+		temporalAuthCfg.Namespace = ns
+		temporalAuthCfg.HostPort = hp
+	}
 	artemis_hydra_orchestrations_aws_auth.InitHydraSecretManagerAuthAWS(ctx, awsAuthCfg)
 
 	log.Info().Msg("Zeus: PG connection starting")
@@ -317,6 +323,7 @@ func init() {
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesKey, "do-spaces-key", "", "do s3 spaces key")
 	Cmd.Flags().StringVar(&authKeysCfg.SpacesPrivKey, "do-spaces-private-key", "", "do s3 spaces private key")
 	Cmd.Flags().StringVar(&env, "env", "production-local", "environment")
+	Cmd.Flags().StringVar(&appConfig, "app-config", "", "app type")
 }
 
 // Cmd represents the base command when called without any subcommands

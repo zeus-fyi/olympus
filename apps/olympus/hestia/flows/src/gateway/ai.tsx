@@ -285,6 +285,18 @@ class AiApiGateway {
         }
         return await zeusApi.post(url, params, config)
     }
+    async adminFlowCsvExportRequest(id: string): Promise<any> {
+        const url = `/v1/admin/flow/${id}/csv`;
+        const sessionID = inMemoryJWT.getToken();
+        let config = {
+            headers: {
+                'Authorization': `Bearer ${sessionID}`
+            },
+            responseType: 'blob' as const,  // Ensures that TypeScript treats this as a literal type that matches the expected type.
+            withCredentials: true,
+        };
+        return await zeusApi.get(url, config)
+    }
     async flowCsvExportRequest(id: string): Promise<any> {
         const url = `/v1/flow/${id}/csv`;
         const sessionID = inMemoryJWT.getToken();

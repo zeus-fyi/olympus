@@ -220,3 +220,24 @@ func deleteFromS3(ctx context.Context, p *filepaths.Path) error {
 	}
 	return nil
 }
+
+func S3WfRunUploadWithPath(ctx context.Context, p *filepaths.Path, payload any) error {
+	if p == nil || p.FileInPath() == "" {
+		return fmt.Errorf("S3WfRunUploadWithPath nil path out")
+	}
+	if err := s3SetupCheck(ctx); err != nil {
+		return err
+	}
+	log.Info().Interface("p.FileOutPath()", p.FileOutPath()).Msg("S3WfRunUploadWithPath")
+	b, err := json.Marshal(payload)
+	if err != nil {
+		log.Err(err).Interface("payload", payload).Msg("S3WfRunUploadWithPath: failed to upload wsr io")
+		return err
+	}
+	err = uploadFromInMemFs(ctx, b, p)
+	if err != nil {
+		log.Err(err).Interface("payload", payload).Msg("S3WfRunUploadWithPath failed to upload")
+		return err
+	}
+	return err
+}

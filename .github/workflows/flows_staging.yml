@@ -6,8 +6,7 @@ on:
       - .github/workflows/flows_staging.yml
       - apps/olympus/hestia/**
     branches:
-      - main
-      - add-flows
+      - staging
       - csv-merge
 
 permissions:

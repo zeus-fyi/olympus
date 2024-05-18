@@ -3,9 +3,9 @@ package s3base
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/stretchr/testify/suite"
 	"github.com/zeus-fyi/olympus/pkg/utils/test_utils/test_suites/test_suites_base"
 )
@@ -27,16 +27,17 @@ func (t *S3ClientTestSuite) TestConnection() {
 	t.Require().NotNil(s3client)
 
 	//pf := "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434aa7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
-	o, err := s3client.ListAllItemsInBucket(ctx, "flows")
+	o, err := s3client.ListAllItemsInBucket(ctx, "flows", aws.Int32(100))
 	t.Require().Nil(err)
 	t.Require().NotEmpty(o)
 	//
 	fmt.Println(len(o), "len")
 	for _, v := range o {
-		if strings.Contains(v, "zenrows") {
-			err = s3client.DeleteObject(ctx, "flows", v)
-			t.Require().Nil(err)
-		}
+		fmt.Println(v)
+		//if strings.Contains(v, "zenrows") {
+		//	err = s3client.DeleteObject(ctx, "flows", v)
+		//	t.Require().Nil(err)
+		//}
 	}
 }
 

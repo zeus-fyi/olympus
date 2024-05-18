@@ -193,7 +193,7 @@ func AdminSelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser
 					  	JOIN
 							public.orchestrations AS o ON o.orchestration_id = ar.orchestration_id
 						WHERE 
-							 o.org_id != 1685378241971196000 AND ar.is_archived = false` + queryByRunID + ` 
+							 o.org_id != 0 AND ar.is_archived = false` + queryByRunID + ` 
 						ORDER BY
 							o.orchestration_id DESC
 						` + limit + `
@@ -219,7 +219,7 @@ func AdminSelectAiSystemOrchestrations(ctx context.Context, ou org_users.OrgUser
 						JOIN
 							public.ai_workflow_io_results ai_io ON ai_io.orchestration_id = o.orchestration_id
 						WHERE 
-							o.org_id != 1685378241971196000 AND $1::int8 != 0
+							o.org_id != 0 AND $1::int8 != 0
 						GROUP BY                             
 							o.orchestration_id,
 							o.orchestration_name,
